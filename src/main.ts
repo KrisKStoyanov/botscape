@@ -14,11 +14,15 @@ class PlayGame extends Phaser.Scene
     power: number;
     maxPower: number;
     speed: number;
+
     powerText: Phaser.GameObjects.Text;
     titleText: Phaser.GameObjects.Text;
+    helpText: Phaser.GameObjects.Text;
     startButton: Phaser.GameObjects.Image;
     helpButton: Phaser.GameObjects.Image;
-    
+    closeButton: Phaser.GameObjects.Image;
+    buttonMenuPadding: number;
+
     startedGame: boolean;
     endedGame: boolean;
 
@@ -30,7 +34,7 @@ class PlayGame extends Phaser.Scene
     leftKey: Phaser.Input.Keyboard.Key | undefined;
     rightKey: Phaser.Input.Keyboard.Key | undefined;
     holdKey: Phaser.Input.Keyboard.Key | undefined;
-
+    
     constructor() 
     {
         super("PlayGame");
@@ -55,8 +59,17 @@ class PlayGame extends Phaser.Scene
         this.startedGame = true;
         this.endedGame = false;
     }
-    endGame(): void
+    endGame(victory: boolean = false): void
     {
+        if(victory === true)
+        {
+            this.titleText.setText("Victory");
+        }
+        else
+        {
+            this.titleText.setText("Defeat");
+        }
+
         this.player.setVisible(false);
         this.player.setActive(false);
 
@@ -67,18 +80,49 @@ class PlayGame extends Phaser.Scene
     }
     toggleHelpMenu(activate: boolean): void
     {
-        //this.toggleStartMenu(false);
+        this.closeButton.setVisible(activate);
+        this.closeButton.setActive(activate);
+
+        this.startButton.setVisible(!activate);
+        this.startButton.setActive(!activate);
+
+        this.helpButton.setVisible(!activate);
+        this.helpButton.setActive(!activate);
+
+        this.helpText.setVisible(activate);
+        this.helpText.setActive(activate);
+        
+        if(activate === true)
+            {
+                this.titleText.setText("How to play:");
+            }
+            else
+            {
+                this.titleText.setText("Dayglow");
+            }
     }
     toggleStartMenu(activate: boolean): void
     {
-        this.titleText.setPosition(this.cameras.main.scrollX + screenWidth / 2, this.cameras.main.scrollY + screenHeight / 4);
-        this.startButton.setPosition(this.cameras.main.scrollX + screenWidth / 2, this.cameras.main.scrollY + screenHeight / 2);
-        this.helpButton.setPosition(this.cameras.main.scrollX + screenWidth / 2, this.cameras.main.scrollY + screenHeight / 2 + this.startButton.height);
-        
+        const screenCenterX = screenWidth / 2;
+        const screenCenterY = screenHeight / 2;
+
+        this.titleText.setPosition(this.cameras.main.scrollX + screenCenterX, this.cameras.main.scrollY + screenCenterY - (screenCenterX - screenCenterY));
+        // this.startButton.setPosition(this.cameras.main.scrollX + screenWidth / 2, this.cameras.main.scrollY + screenHeight / 2);
+        // this.helpButton.setPosition(this.cameras.main.scrollX + screenWidth / 2, this.cameras.main.scrollY + screenHeight / 2 + this.startButton.height);
+        this.helpText.setPosition(this.cameras.main.scrollX + screenCenterX, this.cameras.main.scrollY + screenCenterY + this.titleText.height);
+
+        const buttonStartPositionX = screenCenterX - this.startButton.width / 2;
+
+        this.startButton.setPosition(this.cameras.main.scrollX + buttonStartPositionX, this.cameras.main.scrollY + screenCenterY);
+        this.helpButton.setPosition(this.cameras.main.scrollX + buttonStartPositionX + this.startButton.width + this.buttonMenuPadding, this.cameras.main.scrollY + screenCenterY);
+        this.closeButton.setPosition(this.cameras.main.scrollX + screenWidth - this.startButton.width, this.cameras.main.scrollY + this.startButton.height);
+
         this.titleText.setActive(activate);
         this.titleText.setVisible(activate);
         this.startButton.setActive(activate);
         this.startButton.setVisible(activate);
+        this.helpButton.setActive(activate);
+        this.helpButton.setVisible(activate);
     }
     toggleEndMenu(activate: boolean): void
     {
@@ -109,6 +153,19 @@ class PlayGame extends Phaser.Scene
     enterHelpButtonActiveState(): void
     {
         this.helpButton.setScale(0.8);
+    }
+
+    enterCloseButtonHoverState(): void
+    {
+        this.closeButton.setScale(0.9);
+    }
+    enterCloseButtonRestState(): void
+    {
+        this.closeButton.setScale(1.0);
+    }
+    enterCloseButtonActiveState(): void
+    {
+        this.closeButton.setScale(0.8);
     }
 
     playerCollectBattery(player: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody, 
@@ -147,24 +204,52 @@ class PlayGame extends Phaser.Scene
         this.load.image('power-bar-outline', 'assets/power-bar-outline.png');
         this.load.image('start-button', 'assets/start-button.png');
         this.load.image('help-button', 'assets/help-button.png');
+        this.load.image('close-button', 'assets/close-button.png');
     }
     create(): void 
     {
         this.startedGame = false;
         this.endedGame = false;
-        
-        this.add.image(screenWidth / 2, screenHeight / 2, 'background');
 
-        this.titleText = this.add.text(screenWidth / 2, screenHeight / 4, 'Dayglow', { fontSize: '64px', color: '#000'});
+        this.buttonMenuPadding = 5.0;
+        
+        const screenCenterX = screenWidth / 2;
+        const screenCenterY = screenHeight / 2;
+
+        this.add.image(screenCenterX, screenCenterY, 'background');
+
+        this.titleText = this.add.text(screenCenterX, screenCenterY - (screenCenterX - screenCenterY), 'Dayglow', { fontSize: '64px', color: '#000'});
         this.titleText.setOrigin(0.5, 0.5);
+
+        this.helpText = this.add.text(screenCenterX, screenCenterY + this.titleText.height, 
+            '[W] - Move Up \n'+
+            '[A] - Move Left \n' +
+            '[S] - Move Down \n' +
+            '[D] - Move Right \n', 
+            { fontSize: '32px', color: '#000'});
+        this.helpText.setOrigin(0.5, 0.5);
+        
+        this.helpText.setVisible(false);
+        this.helpText.setActive(false);
 
         // this.startButton = new Phaser.GameObjects.Image(this, 400, 300, 'start-button');
         // this.add.existing(this.startButton);
-        this.startButton = this.add.image(screenWidth / 2, screenHeight / 2, 'start-button');
+        this.startButton = this.add.image(screenCenterX, screenCenterY, 'start-button');
         this.startButton.setInteractive({useHandCursor: true});
 
-        this.helpButton = this.add.image(screenWidth / 2, screenHeight / 2 + this.startButton.height, 'help-button');
+        this.helpButton = this.add.image(screenCenterX, screenCenterY, 'help-button');
         this.helpButton.setInteractive({useHandCursor: true});
+
+        this.closeButton = this.add.image(screenWidth - this.startButton.width, this.startButton.height, 'close-button');
+        this.closeButton.setInteractive({useHandCursor: true});
+
+        this.closeButton.setVisible(false);
+        this.closeButton.setActive(false);
+
+        const buttonStartPositionX = screenCenterX - this.startButton.width / 2;
+
+        this.startButton.setPosition(buttonStartPositionX, this.startButton.y);
+        this.helpButton.setPosition(buttonStartPositionX + this.startButton.width + this.buttonMenuPadding, this.helpButton.y);
 
         this.startButton.on('pointerover', () => this.enterStartButtonHoverState());
         this.startButton.on('pointerout', () => this.enterStartButtonRestState());
@@ -182,6 +267,15 @@ class PlayGame extends Phaser.Scene
             {
                 this.toggleHelpMenu(true);
                 this.enterHelpButtonHoverState();
+            });
+
+        this.closeButton.on('pointerover', () => this.enterCloseButtonHoverState());
+        this.closeButton.on('pointerout', () => this.enterCloseButtonRestState());
+        this.closeButton.on('pointerdown', () => this.enterCloseButtonActiveState());
+        this.closeButton.on('pointerup', () => 
+            {
+                this.toggleHelpMenu(false);
+                this.enterCloseButtonHoverState();
             });
 
         //this.powerText = this.add.text(0, 0, 'Power: ' + this.power, { fontSize: '32px', color: '#000'});
@@ -293,7 +387,10 @@ class PlayGame extends Phaser.Scene
 
         if(this.power < 0)
         {
-            this.endGame();
+            if(this.startedGame === true)
+                {
+                    this.endGame();
+                }
         }
     }
 }
