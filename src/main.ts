@@ -1,7 +1,7 @@
 import 'phaser';
 
-const screenWidth = 800;
-const screenHeight = 600;
+const screenWidth = window.screen.width * window.devicePixelRatio;
+const screenHeight = window.screen.height * window.devicePixelRatio;
 
 class PlayGame extends Phaser.Scene 
 {
@@ -13,7 +13,9 @@ class PlayGame extends Phaser.Scene
     enemyNPCs: Phaser.Physics.Arcade.Group;
     power: number;
     maxPower: number;
+    powerDrainPerTick: number;
     speed: number;
+    maxSpeed: number;
 
     powerText: Phaser.GameObjects.Text;
     titleText: Phaser.GameObjects.Text;
@@ -48,9 +50,12 @@ class PlayGame extends Phaser.Scene
         this.powerBar.setVisible(true);
         this.powerBarOutline.setVisible(true);
 
+        this.powerDrainPerTick = 0.01;
+
         this.power = 50;
         this.maxPower = 100;
-        this.speed = 100;
+        this.speed = 0;
+        this.maxSpeed = 500;
         
         this.player.setRandomPosition(0, 0, 800, 600);
         this.player.setVisible(true);
@@ -106,7 +111,7 @@ class PlayGame extends Phaser.Scene
         const screenCenterX = screenWidth / 2;
         const screenCenterY = screenHeight / 2;
 
-        this.titleText.setPosition(this.cameras.main.scrollX + screenCenterX, this.cameras.main.scrollY + screenCenterY - (screenCenterX - screenCenterY));
+        this.titleText.setPosition(this.cameras.main.scrollX + screenCenterX, this.cameras.main.scrollY + screenCenterY - this.startButton.height + this.buttonMenuPadding);
         // this.startButton.setPosition(this.cameras.main.scrollX + screenWidth / 2, this.cameras.main.scrollY + screenHeight / 2);
         // this.helpButton.setPosition(this.cameras.main.scrollX + screenWidth / 2, this.cameras.main.scrollY + screenHeight / 2 + this.startButton.height);
         this.helpText.setPosition(this.cameras.main.scrollX + screenCenterX, this.cameras.main.scrollY + screenCenterY + this.titleText.height);
@@ -205,6 +210,8 @@ class PlayGame extends Phaser.Scene
         this.load.image('start-button', 'assets/start-button.png');
         this.load.image('help-button', 'assets/help-button.png');
         this.load.image('close-button', 'assets/close-button.png');
+        this.load.image('wall-horizontal', 'assets/wall-horizontal.png');
+        this.load.image('wall-vertical', 'assets/wall-vertical.png');
     }
     create(): void 
     {
@@ -216,9 +223,18 @@ class PlayGame extends Phaser.Scene
         const screenCenterX = screenWidth / 2;
         const screenCenterY = screenHeight / 2;
 
-        this.add.image(screenCenterX, screenCenterY, 'background');
+        const background = this.add.image(screenCenterX, screenCenterY, 'background');
 
-        this.titleText = this.add.text(screenCenterX, screenCenterY - (screenCenterX - screenCenterY), 'Dayglow', { fontSize: '64px', color: '#000'});
+        console.log(background.width);
+        console.log(background.height);
+
+        const wallHorizontalTop = this.add.image(screenCenterX, screenCenterY - background.height / 2 + 64, 'wall-horizontal');
+        const wallHorizontalBottom = this.add.image(screenCenterX, screenCenterY + background.height / 2 - 64, 'wall-horizontal');
+
+        const wallVerticalTop = this.add.image(screenCenterX - background.width / 2 + 64, screenCenterY, 'wall-vertical');
+        const wallVerticalBottom = this.add.image(screenCenterX + background.width / 2 - 64, screenCenterY, 'wall-vertical');
+
+        this.titleText = this.add.text(screenCenterX, screenCenterY, 'Dayglow', { fontSize: '64px', color: '#000'});
         this.titleText.setOrigin(0.5, 0.5);
 
         this.helpText = this.add.text(screenCenterX, screenCenterY + this.titleText.height, 
@@ -250,6 +266,7 @@ class PlayGame extends Phaser.Scene
 
         this.startButton.setPosition(buttonStartPositionX, this.startButton.y);
         this.helpButton.setPosition(buttonStartPositionX + this.startButton.width + this.buttonMenuPadding, this.helpButton.y);
+        this.titleText.setPosition(screenCenterX, screenCenterY - this.startButton.height + this.buttonMenuPadding);
 
         this.startButton.on('pointerover', () => this.enterStartButtonHoverState());
         this.startButton.on('pointerout', () => this.enterStartButtonRestState());
@@ -351,16 +368,25 @@ class PlayGame extends Phaser.Scene
     {
         if(this.player.active === true)
             {
-                this.cameras.main.setScroll(this.player.x - screenWidth / 2, this.player.y - screenHeight / 2);
+                const screenCenterX = screenWidth / 2;
+                const screenCenterY = screenHeight / 2
+                const playerPositionX = this.player.x - screenCenterX;
+                const playerPositionY = this.player.y - screenCenterY;
+                const cameraPositionX = Math.min(Math.max( playerPositionX, screenCenterX - 2560 / 2 ), Math.abs(screenCenterX - 2560 / 2 ));
+                const cameraPositionY = Math.min(Math.max( playerPositionY, screenCenterY - 2560 / 2 ), Math.abs(screenCenterY - 2560 / 2 )); 
+                
+                this.cameras.main.setScroll(cameraPositionX, cameraPositionY); 
+                    
             //this.powerText.setPosition(this.player.x - screenWidth / 2, this.player.y - screenHeight / 2);
 
-            this.powerBar.setPosition(this.player.x - screenWidth / 2 + this.powerBar.width, 
-                this.player.y - screenHeight / 2 + this.powerBar.height);
-            this.powerBarOutline.setPosition(this.player.x - screenWidth / 2 + this.powerBarOutline.width,
-                this.player.y - screenHeight / 2 + this.powerBarOutline.height);
+            this.powerBar.setPosition(cameraPositionX + this.powerBar.width * 0.5 + (this.powerBar.width - this.powerBar.height) * 0.5, 
+                cameraPositionY + this.powerBar.height * 0.5 + (this.powerBar.width - this.powerBar.height) * 0.5);
+            this.powerBarOutline.setPosition(cameraPositionX + this.powerBarOutline.width * 0.5 + (this.powerBarOutline.width - this.powerBarOutline.height) * 0.5,
+                cameraPositionY + this.powerBarOutline.height * 0.5 + (this.powerBarOutline.width - this.powerBarOutline.height) * 0.5);
         
             this.powerBar.setCrop(0, 0, (this.power / this.maxPower) * this.powerBar.width, this.powerBar.height);
                 
+            this.speed = this.maxSpeed * (this.power / this.maxPower);
             if(this.upKey?.isDown)
                 {
                     this.player.setVelocityY(-this.speed);
@@ -381,7 +407,7 @@ class PlayGame extends Phaser.Scene
                     this.player.setVelocity(0.0, 0.0);
                 }
 
-                this.drainPower(0.1);
+                this.drainPower(this.powerDrainPerTick + (this.powerDrainPerTick * (this.speed / this.maxSpeed) * 0.01) * (Math.abs(this.player.body.velocity.x) + Math.abs(this.player.body.velocity.y)) );
             }
         
 
