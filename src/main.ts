@@ -201,7 +201,7 @@ class PlayGame extends Phaser.Scene
     {
         this.load.image('logo', 'assets/woodpecker.png'); 
         this.load.image('background', 'assets/background.png');
-        this.load.image('player', 'assets/player.png');
+        this.load.spritesheet('player', 'assets/player.png', {frameWidth: 128, frameHeight: 128});
         this.load.image('tile-1', 'assets/tile-1.png');
         this.load.image('battery', 'assets/battery.png');
         this.load.image('enemy', 'assets/enemy.png');
@@ -298,6 +298,7 @@ class PlayGame extends Phaser.Scene
         //this.powerText = this.add.text(0, 0, 'Power: ' + this.power, { fontSize: '32px', color: '#000'});
         this.powerBar = this.add.image(0, 0, 'power-bar');
         this.powerBar.setOrigin(0.5, this.powerBar.originY);
+        this.powerBar.setAlpha(0.6);
         this.powerBarOutline = this.add.image(0, 0, 'power-bar-outline');
         this.powerBar.setVisible(false);
         this.powerBarOutline.setVisible(false);
@@ -309,7 +310,7 @@ class PlayGame extends Phaser.Scene
         this.platforms.create(475, 400, 'tile-1');
         this.platforms.setVisible(false);
 
-        this.player = this.physics.add.sprite(400, 300, 'player');
+        this.player = this.physics.add.sprite(100, 100, 'player');
         this.player.setVisible(false);
         this.player.setActive(false);
         
@@ -328,34 +329,35 @@ class PlayGame extends Phaser.Scene
         this.physics.add.collider(this.player, this.enemyNPCs, this.dischargePower, undefined, this);
         this.physics.add.overlap(this.enemyNPCs, this.batteries, this.enemyCollectBattery, undefined, this);
 
+        // this.anims.create({
+        //     key: 'left',
+        //     frames: this.anims.generateFrameNumbers('player', {start: 0, end: 3}),
+        //     frameRate: 10,
+        //     repeat: -1
+        // });
+        // this.anims.create({
+        //     key: 'right',
+        //     frames: this.anims.generateFrameNumbers('player', {start: 0, end: 3}),
+        //     frameRate: 10,
+        //     repeat: -1
+        // });
+        // this.anims.create({
+        //     key: 'up',
+        //     frames: this.anims.generateFrameNumbers('player', {start: 0, end: 3}),
+        //     frameRate: 10,
+        //     repeat: -1
+        // });
+        // this.anims.create({
+        //     key: 'down',
+        //     frames: this.anims.generateFrameNumbers('player', {start: 0, end: 3}),
+        //     frameRate: 10,
+        //     repeat: -1
+        // });
         this.anims.create({
-            key: 'left',
-            frames: this.anims.generateFrameNumbers('player', {start: 0, end: 3}),
-            frameRate: 10,
+            key: 'idle',
+            frames: this.anims.generateFrameNumbers('player', {start: 0, end: 1}), //[{key: 'player', frame: 1}],
+            frameRate: 12,
             repeat: -1
-        });
-        this.anims.create({
-            key: 'right',
-            frames: this.anims.generateFrameNumbers('player', {start: 0, end: 3}),
-            frameRate: 10,
-            repeat: -1
-        });
-        this.anims.create({
-            key: 'up',
-            frames: this.anims.generateFrameNumbers('player', {start: 0, end: 3}),
-            frameRate: 10,
-            repeat: -1
-        });
-        this.anims.create({
-            key: 'down',
-            frames: this.anims.generateFrameNumbers('player', {start: 0, end: 3}),
-            frameRate: 10,
-            repeat: -1
-        });
-        this.anims.create({
-            key: 'turn',
-            frames: [{key: 'player', frame: 4}],
-            frameRate: 20
         })
 
         this.upKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.W);
@@ -379,10 +381,10 @@ class PlayGame extends Phaser.Scene
                     
             //this.powerText.setPosition(this.player.x - screenWidth / 2, this.player.y - screenHeight / 2);
 
-            this.powerBar.setPosition(cameraPositionX + this.powerBar.width * 0.5 + (this.powerBar.width - this.powerBar.height) * 0.5, 
-                cameraPositionY + this.powerBar.height * 0.5 + (this.powerBar.width - this.powerBar.height) * 0.5);
-            this.powerBarOutline.setPosition(cameraPositionX + this.powerBarOutline.width * 0.5 + (this.powerBarOutline.width - this.powerBarOutline.height) * 0.5,
-                cameraPositionY + this.powerBarOutline.height * 0.5 + (this.powerBarOutline.width - this.powerBarOutline.height) * 0.5);
+            this.powerBar.setPosition(cameraPositionX + this.powerBar.width * 0.5 + 64, 
+                cameraPositionY + this.powerBar.height * 0.5 + 64);
+            this.powerBarOutline.setPosition(cameraPositionX + this.powerBarOutline.width * 0.5 + 64,
+                cameraPositionY + this.powerBarOutline.height * 0.5 + 64);
         
             this.powerBar.setCrop(0, 0, (this.power / this.maxPower) * this.powerBar.width, this.powerBar.height);
                 
@@ -405,6 +407,7 @@ class PlayGame extends Phaser.Scene
                 }
             else{
                     this.player.setVelocity(0.0, 0.0);
+                    this.player.anims.play('idle', true);
                 }
 
                 this.drainPower(this.powerDrainPerTick + (this.powerDrainPerTick * (this.speed / this.maxSpeed) * 0.01) * (Math.abs(this.player.body.velocity.x) + Math.abs(this.player.body.velocity.y)) );
