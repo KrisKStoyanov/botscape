@@ -3,9 +3,39 @@ import 'phaser';
 const screenWidth = window.screen.width * window.devicePixelRatio;
 const screenHeight = window.screen.height * window.devicePixelRatio;
 
+class GameButton extends Phaser.GameObjects.Image
+{
+    constructor(scene: Phaser.Scene, x: number, y: number, texture: string, callback: Function)
+    {
+        super(scene, x, y, texture);
+
+        this.setInteractive({useHandCursor: true});
+        this.on('pointerover', () => this.enterButtonHoverState());
+        this.on('pointerout', () => this.enterButtonRestState());
+        this.on('pointerdown', () => this.enterButtonActiveState());
+        this.on('pointerup', () => 
+            {
+                this.enterButtonHoverState();
+                callback();
+            });
+    }
+
+    enterButtonHoverState(): void
+    {
+        this.setScale(0.9);
+    }
+    enterButtonRestState(): void
+    {
+        this.setScale(1.0);
+    }
+    enterButtonActiveState(): void
+    {
+        this.setScale(0.8);
+    }
+}
+
 class PlayGame extends Phaser.Scene 
 {
-    image: Phaser.GameObjects.Image;
     platforms: Phaser.Physics.Arcade.StaticGroup;
     player: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
     cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
@@ -20,9 +50,9 @@ class PlayGame extends Phaser.Scene
     powerText: Phaser.GameObjects.Text;
     titleText: Phaser.GameObjects.Text;
     helpText: Phaser.GameObjects.Text;
-    startButton: Phaser.GameObjects.Image;
-    helpButton: Phaser.GameObjects.Image;
-    closeButton: Phaser.GameObjects.Image;
+    startButton: GameButton;
+    helpButton: GameButton;
+    closeButton: GameButton;
     buttonMenuPadding: number;
 
     startedGame: boolean;
@@ -134,45 +164,6 @@ class PlayGame extends Phaser.Scene
         this.toggleStartMenu(activate);
     }
 
-    enterStartButtonHoverState(): void
-    {
-        this.startButton.setScale(0.9);
-    }
-    enterStartButtonRestState(): void
-    {
-        this.startButton.setScale(1.0);
-    }
-    enterStartButtonActiveState(): void
-    {
-        this.startButton.setScale(0.8);
-    }
-
-    enterHelpButtonHoverState(): void
-    {
-        this.helpButton.setScale(0.9);
-    }
-    enterHelpButtonRestState(): void
-    {
-        this.helpButton.setScale(1.0);
-    }
-    enterHelpButtonActiveState(): void
-    {
-        this.helpButton.setScale(0.8);
-    }
-
-    enterCloseButtonHoverState(): void
-    {
-        this.closeButton.setScale(0.9);
-    }
-    enterCloseButtonRestState(): void
-    {
-        this.closeButton.setScale(1.0);
-    }
-    enterCloseButtonActiveState(): void
-    {
-        this.closeButton.setScale(0.8);
-    }
-
     playerCollectBattery(player: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody, 
         battery: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody): void
     {
@@ -250,14 +241,14 @@ class PlayGame extends Phaser.Scene
 
         // this.startButton = new Phaser.GameObjects.Image(this, 400, 300, 'start-button');
         // this.add.existing(this.startButton);
-        this.startButton = this.add.image(screenCenterX, screenCenterY, 'start-button');
-        this.startButton.setInteractive({useHandCursor: true});
-
-        this.helpButton = this.add.image(screenCenterX, screenCenterY, 'help-button');
-        this.helpButton.setInteractive({useHandCursor: true});
-
-        this.closeButton = this.add.image(screenWidth - this.startButton.width, this.startButton.height, 'close-button');
-        this.closeButton.setInteractive({useHandCursor: true});
+        this.startButton = new GameButton(this, screenCenterX, screenCenterY, 'start-button', () => this.startGame());
+        this.add.existing(this.startButton);
+        
+        this.helpButton = new GameButton(this, screenCenterX, screenCenterY, 'help-button', () => this.toggleHelpMenu(true));
+        this.add.existing(this.helpButton);
+        
+        this.closeButton = new GameButton(this, screenWidth - this.startButton.width, this.startButton.height, 'close-button', () => this.toggleHelpMenu(false));
+        this.add.existing(this.closeButton);
 
         this.closeButton.setVisible(false);
         this.closeButton.setActive(false);
@@ -267,33 +258,6 @@ class PlayGame extends Phaser.Scene
         this.startButton.setPosition(buttonStartPositionX, this.startButton.y);
         this.helpButton.setPosition(buttonStartPositionX + this.startButton.width + this.buttonMenuPadding, this.helpButton.y);
         this.titleText.setPosition(screenCenterX, screenCenterY - this.startButton.height + this.buttonMenuPadding);
-
-        this.startButton.on('pointerover', () => this.enterStartButtonHoverState());
-        this.startButton.on('pointerout', () => this.enterStartButtonRestState());
-        this.startButton.on('pointerdown', () => this.enterStartButtonActiveState());
-        this.startButton.on('pointerup', () => 
-            {
-                this.startGame();
-                this.enterStartButtonHoverState();
-            });
-
-        this.helpButton.on('pointerover', () => this.enterHelpButtonHoverState());
-        this.helpButton.on('pointerout', () => this.enterHelpButtonRestState());
-        this.helpButton.on('pointerdown', () => this.enterHelpButtonActiveState());
-        this.helpButton.on('pointerup', () => 
-            {
-                this.toggleHelpMenu(true);
-                this.enterHelpButtonHoverState();
-            });
-
-        this.closeButton.on('pointerover', () => this.enterCloseButtonHoverState());
-        this.closeButton.on('pointerout', () => this.enterCloseButtonRestState());
-        this.closeButton.on('pointerdown', () => this.enterCloseButtonActiveState());
-        this.closeButton.on('pointerup', () => 
-            {
-                this.toggleHelpMenu(false);
-                this.enterCloseButtonHoverState();
-            });
 
         //this.powerText = this.add.text(0, 0, 'Power: ' + this.power, { fontSize: '32px', color: '#000'});
         this.powerBar = this.add.image(0, 0, 'power-bar');
