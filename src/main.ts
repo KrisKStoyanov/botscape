@@ -98,6 +98,7 @@ class PlayGame extends Phaser.Scene
     {
         this.pausedGame = activate;
         this.player.setVelocity(0, 0);
+        this.player.anims.pause();
         this.togglePauseMenu(activate);
     }
     togglePauseMenu(activate: boolean): void
