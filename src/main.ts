@@ -363,14 +363,15 @@ class PlayGame extends Phaser.Scene
         
         if(this.startedGame === true)
             {
-                // if(this.pauseKey?.isDown )
-                //     {
-                //         this.pauseGame(!this.pauseKey.isUp);
-                //     }
-                // if(this.pauseKey?.isUp)
-                //     {
-                //         this.pauseGame(this.pauseKey.isDown);
-                //     }
+                if(this.pauseKey?.isDown && !this.pauseButton.pressed)
+                    {
+                        this.pauseGame(!this.pausedGame);
+                        this.pauseButton.pressed = true;
+                    }
+                else if(this.pauseKey?.isUp)
+                    {
+                        this.pauseButton.pressed = false;
+                    }
             }
 
         if(this.player.active === true && this.pausedGame === false)

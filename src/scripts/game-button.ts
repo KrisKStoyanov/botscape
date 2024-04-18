@@ -27,6 +27,8 @@ class GameButton extends Phaser.GameObjects.Image
     {
         this.setScale(0.8);
     }
+
+    pressed: boolean;
 }
 
 export default GameButton;
