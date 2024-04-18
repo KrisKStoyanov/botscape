@@ -17,6 +17,7 @@ class PlayGame extends Phaser.Scene
     powerDrainPerTick: number;
     speed: number;
     maxSpeed: number;
+    batteryPower: number;
 
     powerText: Phaser.GameObjects.Text;
     titleText: Phaser.GameObjects.Text;
@@ -62,6 +63,8 @@ class PlayGame extends Phaser.Scene
         this.maxPower = 100;
         this.speed = 0;
         this.maxSpeed = 500;
+
+        this.batteryPower = 20;
         
         this.player.setRandomPosition(128, 128, screenWidth - 128, screenHeight - 128);
         this.player.setVisible(true);
@@ -172,7 +175,7 @@ class PlayGame extends Phaser.Scene
     {
         battery.destroy();
 
-        this.power += 2;
+        this.power += this.batteryPower;
         //this.powerText.setText('Power: ' + this.power);
     }
     enemyCollectBattery(player: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody, 
