@@ -397,26 +397,59 @@ class PlayGame extends Phaser.Scene
             this.powerBar.setCrop(0, 0, (this.power / this.maxPower) * this.powerBar.width, this.powerBar.height);
                 
             this.speed = this.maxSpeed * (this.power / this.maxPower);
+            let posScaleX = 0;
+            let negScaleX = 0;
+            let posScaleY = 0;
+            let negScaleY = 0;
+
+            let velocityX = 0.0;
+            let velocityY = 0.0;
+            
+            if(this.leftKey?.isDown)
+                {
+                    negScaleX = 1;
+                }
+            if(this.leftKey?.isUp)
+                {
+                    negScaleX = 0;
+                }
+
+            if(this.rightKey?.isDown)
+                {
+                    posScaleX = 1;
+                }
+            if(this.rightKey?.isUp)
+                {
+                    posScaleX = 0;
+                }
+
             if(this.upKey?.isDown)
                 {
-                    this.player.setVelocityY(-this.speed);
+                    negScaleY = 1;
                 }
-            else if(this.downKey?.isDown)
+            if(this.upKey?.isUp)
                 {
-                    this.player.setVelocityY(this.speed);
+                    negScaleY = 0;
                 }
-            else if(this.leftKey?.isDown)
+
+            if(this.downKey?.isDown)
                 {
-                    this.player.setVelocityX(-this.speed);
+                    posScaleY = 1;
                 }
-            else if(this.rightKey?.isDown)
+            if(this.downKey?.isUp)
                 {
-                    this.player.setVelocityX(this.speed);
+                    posScaleY = 0;
                 }
-            else{
-                    this.player.setVelocity(0.0, 0.0);
-                    this.player.anims.play('idle', true);
-                }
+                
+                velocityX = (posScaleX * this.speed + negScaleX * -this.speed);
+                velocityY = (posScaleY * this.speed + negScaleY * -this.speed);
+                this.player.setVelocity(velocityX, velocityY);
+                
+                if(this.player.body.velocity.x === 0 && this.player.body.velocity.y === 0)
+                    {
+                        this.player.anims.play('idle', true);
+                    }
+
                 this.drainPower(this.powerDrainPerTick + (this.powerDrainPerTick * (this.speed / this.maxSpeed) * 0.01) * (Math.abs(this.player.body.velocity.x) + Math.abs(this.player.body.velocity.y)) );
             }
         
