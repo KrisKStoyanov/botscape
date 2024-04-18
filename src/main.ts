@@ -308,18 +308,9 @@ class PlayGame extends Phaser.Scene
         this.titleText.setPosition(screenCenterX, screenCenterY - this.startButton.height + this.buttonMenuPadding);
 
         //this.powerText = this.add.text(0, 0, 'Power: ' + this.power, { fontSize: '32px', color: '#000'});
-        this.powerBar = this.add.image(0, 0, 'power-bar');
-        this.powerBar.setOrigin(0.5, this.powerBar.originY);
-        this.powerBar.setAlpha(0.6);
-        this.powerBarOutline = this.add.image(0, 0, 'power-bar-outline');
-        this.powerBar.setVisible(false);
-        this.powerBarOutline.setVisible(false);
 
         this.platforms = this.physics.add.staticGroup();
-        this.platforms.create(400, 400, 'tile-1');
-        this.platforms.create(425, 400, 'tile-1');
-        this.platforms.create(450, 400, 'tile-1');
-        this.platforms.create(475, 400, 'tile-1');
+        this.platforms.create(128, 512, 'tile-1');
         //this.platforms.setVisible(false);
 
         this.escapeHatch = this.physics.add.sprite(256, 256, 'escape-hatch');
@@ -340,6 +331,13 @@ class PlayGame extends Phaser.Scene
         this.enemyNPCs = this.physics.add.group();
         this.enemyNPCs.create(128, 128, 'enemy');
         //this.enemyNPCs.setVisible(false);
+
+        this.powerBar = this.add.image(0, 0, 'power-bar');
+        this.powerBar.setOrigin(0.5, this.powerBar.originY);
+        this.powerBar.setAlpha(0.6);
+        this.powerBarOutline = this.add.image(0, 0, 'power-bar-outline');
+        this.powerBar.setVisible(false);
+        this.powerBarOutline.setVisible(false);
 
         this.physics.add.collider(this.player, this.platforms);
         this.physics.add.overlap(this.player, this.batteries, this.playerCollectBattery, undefined, this);
