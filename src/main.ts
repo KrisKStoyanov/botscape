@@ -24,10 +24,13 @@ class PlayGame extends Phaser.Scene
     startButton: GameButton;
     helpButton: GameButton;
     closeButton: GameButton;
+    pauseButton: GameButton;
+    restartButton: GameButton;
     buttonMenuPadding: number;
 
     startedGame: boolean;
     endedGame: boolean;
+    pausedGame: boolean;
 
     powerBar: Phaser.GameObjects.Image;
     powerBarOutline: Phaser.GameObjects.Image;
@@ -37,6 +40,7 @@ class PlayGame extends Phaser.Scene
     leftKey: Phaser.Input.Keyboard.Key | undefined;
     rightKey: Phaser.Input.Keyboard.Key | undefined;
     holdKey: Phaser.Input.Keyboard.Key | undefined;
+    pauseKey: Phaser.Input.Keyboard.Key | undefined;
     
     constructor() 
     {
@@ -47,6 +51,7 @@ class PlayGame extends Phaser.Scene
         this.toggleEndMenu(false);
         this.toggleHelpMenu(false);
         this.toggleStartMenu(false);
+        this.togglePauseMenu(false);
 
         this.powerBar.setVisible(true);
         this.powerBarOutline.setVisible(true);
@@ -58,12 +63,13 @@ class PlayGame extends Phaser.Scene
         this.speed = 0;
         this.maxSpeed = 500;
         
-        this.player.setRandomPosition(128, 128, 2560 - 128, 2560 - 128);
+        this.player.setRandomPosition(128, 128, screenWidth - 128, screenHeight - 128);
         this.player.setVisible(true);
         this.player.setActive(true);
 
         this.startedGame = true;
         this.endedGame = false;
+        this.pausedGame = false;
     }
     endGame(victory: boolean = false): void
     {
@@ -83,6 +89,32 @@ class PlayGame extends Phaser.Scene
 
         this.startedGame = false;
         this.endedGame = true;
+        this.pausedGame = false;
+    }
+    pauseGame(activate: boolean): void
+    {
+        this.pausedGame = activate;
+        this.player.setVelocity(0, 0);
+        this.togglePauseMenu(activate);
+    }
+    togglePauseMenu(activate: boolean): void
+    {
+        this.titleText.setActive(activate);
+        this.titleText.setVisible(activate);
+        this.restartButton.setActive(activate);
+        this.restartButton.setVisible(activate);
+        
+        const screenCenterX = screenWidth / 2;
+        const screenCenterY = screenHeight / 2
+        const playerPositionX = this.player.x - screenCenterX;
+        const playerPositionY = this.player.y - screenCenterY;
+        const cameraPositionX = Math.min(Math.max( playerPositionX, screenCenterX - 2560 / 2 ), Math.abs(screenCenterX - 2560 / 2 ));
+        const cameraPositionY = Math.min(Math.max( playerPositionY, screenCenterY - 2560 / 2 ), Math.abs(screenCenterY - 2560 / 2 )); 
+
+        this.titleText.setText("Paused");
+        this.titleText.setPosition(this.cameras.main.scrollX + screenCenterX, this.cameras.main.scrollY + screenCenterY - this.startButton.height + this.buttonMenuPadding);
+        this.restartButton.setPosition(cameraPositionX + screenWidth - this.startButton.width * 2 - this.buttonMenuPadding,
+            cameraPositionY + this.pauseButton.height);
     }
     toggleHelpMenu(activate: boolean): void
     {
@@ -179,6 +211,7 @@ class PlayGame extends Phaser.Scene
     {
         this.startedGame = false;
         this.endedGame = false;
+        this.pausedGame = false;
 
         this.buttonMenuPadding = 5.0;
         
@@ -227,6 +260,18 @@ class PlayGame extends Phaser.Scene
 
         this.closeButton.setVisible(false);
         this.closeButton.setActive(false);
+
+        this.pauseButton = new GameButton(this, screenWidth - this.startButton.width, this.startButton.height, 'close-button', () => this.pauseGame(!this.pausedGame));
+        this.add.existing(this.pauseButton);
+
+        this.pauseButton.setVisible(false);
+        this.pauseButton.setActive(false);
+
+        this.restartButton = new GameButton(this, screenWidth - this.startButton.width * 2 - this.buttonMenuPadding, this.startButton.height, 'start-button', () => this.startGame());
+        this.add.existing(this.restartButton);
+
+        this.restartButton.setVisible(false);
+        this.restartButton.setActive(false);
 
         const buttonStartPositionX = screenCenterX - this.startButton.width / 2;
 
@@ -306,10 +351,22 @@ class PlayGame extends Phaser.Scene
         this.downKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.S);
         this.rightKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.D);
         this.holdKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        this.pauseKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
     }
     update(): void 
     {
-        if(this.player.active === true)
+        this.pauseButton.setVisible(this.startedGame);
+        this.pauseButton.setActive(this.startedGame);
+        
+        if(this.startedGame === true)
+            {
+                if(this.pauseKey?.isDown )
+                    {
+                        this.pauseGame(!this.pausedGame);
+                    }    
+            }
+
+        if(this.player.active === true && this.pausedGame === false)
             {
                 const screenCenterX = screenWidth / 2;
                 const screenCenterY = screenHeight / 2
@@ -326,7 +383,10 @@ class PlayGame extends Phaser.Scene
                 cameraPositionY + this.powerBar.height * 0.5 + 64);
             this.powerBarOutline.setPosition(cameraPositionX + this.powerBarOutline.width * 0.5 + 64,
                 cameraPositionY + this.powerBarOutline.height * 0.5 + 64);
-        
+            
+            this.pauseButton.setPosition(cameraPositionX + screenWidth - this.startButton.width,
+                cameraPositionY + this.pauseButton.height);
+
             this.powerBar.setCrop(0, 0, (this.power / this.maxPower) * this.powerBar.width, this.powerBar.height);
                 
             this.speed = this.maxSpeed * (this.power / this.maxPower);
@@ -350,7 +410,6 @@ class PlayGame extends Phaser.Scene
                     this.player.setVelocity(0.0, 0.0);
                     this.player.anims.play('idle', true);
                 }
-
                 this.drainPower(this.powerDrainPerTick + (this.powerDrainPerTick * (this.speed / this.maxSpeed) * 0.01) * (Math.abs(this.player.body.velocity.x) + Math.abs(this.player.body.velocity.y)) );
             }
         
