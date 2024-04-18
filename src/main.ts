@@ -9,15 +9,18 @@ class PlayGame extends Phaser.Scene
     platforms: Phaser.Physics.Arcade.StaticGroup;
     levelBounds: Phaser.Physics.Arcade.StaticGroup;
     player: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+    escapeHatch: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
     cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
     batteries: Phaser.Physics.Arcade.StaticGroup;
     enemyNPCs: Phaser.Physics.Arcade.Group;
+
     power: number;
     maxPower: number;
     powerDrainPerTick: number;
     speed: number;
     maxSpeed: number;
     batteryPower: number;
+    digRevealRadius: number;
 
     powerText: Phaser.GameObjects.Text;
     titleText: Phaser.GameObjects.Text;
@@ -40,7 +43,7 @@ class PlayGame extends Phaser.Scene
     downKey: Phaser.Input.Keyboard.Key | undefined;
     leftKey: Phaser.Input.Keyboard.Key | undefined;
     rightKey: Phaser.Input.Keyboard.Key | undefined;
-    holdKey: Phaser.Input.Keyboard.Key | undefined;
+    digKey: Phaser.Input.Keyboard.Key | undefined;
     pauseKey: Phaser.Input.Keyboard.Key | undefined;
     
     constructor() 
@@ -64,11 +67,16 @@ class PlayGame extends Phaser.Scene
         this.speed = 0;
         this.maxSpeed = 500;
 
+        this.digRevealRadius = 10;
+
         this.batteryPower = 20;
         
         this.player.setRandomPosition(128, 128, screenWidth - 128, screenHeight - 128);
         this.player.setVisible(true);
         this.player.setActive(true);
+
+        this.escapeHatch.setRandomPosition(128, 128, screenWidth - 128, screenHeight - 128);
+        //this.escapeHatch.setVisible(false);
 
         this.startedGame = true;
         this.endedGame = false;
@@ -179,13 +187,27 @@ class PlayGame extends Phaser.Scene
         this.power += this.batteryPower;
         //this.powerText.setText('Power: ' + this.power);
     }
+    playerDig(): void
+    {
+        // do a collision check with a circle of predefined radius around the hatch to check if it can be revealed
+    }
+    playerEscape(player: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody, 
+        hatch: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody): void
+    {
+        console.log("escaping");
+        if(this.escapeHatch.visible)
+            {
+                console.log("escaped!");
+                this.endGame(true);
+            }
+    }
     enemyCollectBattery(player: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody, 
         battery: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody): void
     {
         battery.destroy();
     }
 
-    dischargePower(player: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody, 
+    playerDischargePower(player: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody, 
         enemy: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody): void
     {
         this.power -= 1;
@@ -210,6 +232,8 @@ class PlayGame extends Phaser.Scene
         this.load.image('close-button', 'assets/close-button.png');
         this.load.image('wall-horizontal', 'assets/wall-horizontal.png');
         this.load.image('wall-vertical', 'assets/wall-vertical.png');
+        this.load.image('restart-button', 'assets/restart-button.png');
+        this.load.image('escape-hatch', 'assets/escape-hatch.png');
     }
     create(): void 
     {
@@ -271,7 +295,7 @@ class PlayGame extends Phaser.Scene
         this.pauseButton.setVisible(false);
         this.pauseButton.setActive(false);
 
-        this.restartButton = new GameButton(this, screenWidth - this.startButton.width * 2 - this.buttonMenuPadding, this.startButton.height, 'start-button', () => this.startGame());
+        this.restartButton = new GameButton(this, screenWidth - this.startButton.width * 2 - this.buttonMenuPadding, this.startButton.height, 'restart-button', () => this.startGame());
         this.add.existing(this.restartButton);
 
         this.restartButton.setVisible(false);
@@ -298,9 +322,14 @@ class PlayGame extends Phaser.Scene
         this.platforms.create(475, 400, 'tile-1');
         //this.platforms.setVisible(false);
 
+        this.escapeHatch = this.physics.add.sprite(256, 256, 'escape-hatch');
+        
         this.player = this.physics.add.sprite(128, 128, 'player');
         this.player.setVisible(false);
         this.player.setActive(false);
+
+        
+        //this.escapeHatch.setVisible(false);
         
         this.batteries = this.physics.add.staticGroup();
         this.batteries.create(300, 360, 'battery');
@@ -314,8 +343,10 @@ class PlayGame extends Phaser.Scene
 
         this.physics.add.collider(this.player, this.platforms);
         this.physics.add.overlap(this.player, this.batteries, this.playerCollectBattery, undefined, this);
-        this.physics.add.collider(this.player, this.enemyNPCs, this.dischargePower, undefined, this);
+        this.physics.add.collider(this.player, this.enemyNPCs, this.playerDischargePower, undefined, this);
         this.physics.add.overlap(this.enemyNPCs, this.batteries, this.enemyCollectBattery, undefined, this);
+        
+        this.physics.add.overlap(this.player, this.escapeHatch, this.playerEscape, undefined, this);
 
         this.physics.add.collider(this.player, this.levelBounds);
         this.physics.add.collider(this.enemyNPCs, this.levelBounds);
@@ -354,7 +385,7 @@ class PlayGame extends Phaser.Scene
         this.leftKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.A);
         this.downKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.S);
         this.rightKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.D);
-        this.holdKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        this.digKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
         this.pauseKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
     }
     update(): void 
@@ -450,6 +481,11 @@ class PlayGame extends Phaser.Scene
                 if(this.player.body.velocity.x === 0 && this.player.body.velocity.y === 0)
                     {
                         this.player.anims.play('idle', true);
+                    }
+
+                if(this.digKey?.isDown)
+                    {
+                        this.playerDig();
                     }
 
                 this.drainPower(this.powerDrainPerTick + (this.powerDrainPerTick * (this.speed / this.maxSpeed) * 0.01) * (Math.abs(this.player.body.velocity.x) + Math.abs(this.player.body.velocity.y)) );
