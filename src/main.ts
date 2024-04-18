@@ -37,6 +37,7 @@ class GameButton extends Phaser.GameObjects.Image
 class PlayGame extends Phaser.Scene 
 {
     platforms: Phaser.Physics.Arcade.StaticGroup;
+    levelBounds: Phaser.Physics.Arcade.StaticGroup;
     player: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
     cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
     batteries: Phaser.Physics.Arcade.StaticGroup;
@@ -87,7 +88,7 @@ class PlayGame extends Phaser.Scene
         this.speed = 0;
         this.maxSpeed = 500;
         
-        this.player.setRandomPosition(0, 0, 800, 600);
+        this.player.setRandomPosition(128, 128, 2560 - 128, 2560 - 128);
         this.player.setVisible(true);
         this.player.setActive(true);
 
@@ -219,11 +220,17 @@ class PlayGame extends Phaser.Scene
         console.log(background.width);
         console.log(background.height);
 
-        const wallHorizontalTop = this.add.image(screenCenterX, screenCenterY - background.height / 2 + 64, 'wall-horizontal');
-        const wallHorizontalBottom = this.add.image(screenCenterX, screenCenterY + background.height / 2 - 64, 'wall-horizontal');
+        this.levelBounds = this.physics.add.staticGroup();
+        this.levelBounds.create(screenCenterX, screenCenterY - background.height / 2 + 64, 'wall-horizontal');
+        this.levelBounds.create(screenCenterX, screenCenterY + background.height / 2 - 64, 'wall-horizontal');
+        this.levelBounds.create(screenCenterX - background.width / 2 + 64, screenCenterY, 'wall-vertical');
+        this.levelBounds.create(screenCenterX + background.width / 2 - 64, screenCenterY, 'wall-vertical');
 
-        const wallVerticalTop = this.add.image(screenCenterX - background.width / 2 + 64, screenCenterY, 'wall-vertical');
-        const wallVerticalBottom = this.add.image(screenCenterX + background.width / 2 - 64, screenCenterY, 'wall-vertical');
+        // const wallHorizontalTop = this.add.image(screenCenterX, screenCenterY - background.height / 2 + 64, 'wall-horizontal');
+        // const wallHorizontalBottom = this.add.image(screenCenterX, screenCenterY + background.height / 2 - 64, 'wall-horizontal');
+
+        // const wallVerticalTop = this.add.image(screenCenterX - background.width / 2 + 64, screenCenterY, 'wall-vertical');
+        // const wallVerticalBottom = this.add.image(screenCenterX + background.width / 2 - 64, screenCenterY, 'wall-vertical');
 
         this.titleText = this.add.text(screenCenterX, screenCenterY, 'Dayglow', { fontSize: '64px', color: '#000'});
         this.titleText.setOrigin(0.5, 0.5);
@@ -272,9 +279,9 @@ class PlayGame extends Phaser.Scene
         this.platforms.create(425, 400, 'tile-1');
         this.platforms.create(450, 400, 'tile-1');
         this.platforms.create(475, 400, 'tile-1');
-        this.platforms.setVisible(false);
+        //this.platforms.setVisible(false);
 
-        this.player = this.physics.add.sprite(100, 100, 'player');
+        this.player = this.physics.add.sprite(128, 128, 'player');
         this.player.setVisible(false);
         this.player.setActive(false);
         
@@ -282,17 +289,19 @@ class PlayGame extends Phaser.Scene
         this.batteries.create(300, 360, 'battery');
         this.batteries.create(300, 560, 'battery');
         this.batteries.create(360, 360, 'battery');
-        this.batteries.setVisible(false);
+        //this.batteries.setVisible(false);
 
         this.enemyNPCs = this.physics.add.group();
-        this.enemyNPCs.create(520, 500, 'enemy');
-        this.enemyNPCs.setVisible(false);
+        this.enemyNPCs.create(128, 128, 'enemy');
+        //this.enemyNPCs.setVisible(false);
 
         this.physics.add.collider(this.player, this.platforms);
         this.physics.add.overlap(this.player, this.batteries, this.playerCollectBattery, undefined, this);
         this.physics.add.collider(this.player, this.enemyNPCs, this.dischargePower, undefined, this);
         this.physics.add.overlap(this.enemyNPCs, this.batteries, this.enemyCollectBattery, undefined, this);
 
+        this.physics.add.collider(this.player, this.levelBounds);
+        this.physics.add.collider(this.enemyNPCs, this.levelBounds);
         // this.anims.create({
         //     key: 'left',
         //     frames: this.anims.generateFrameNumbers('player', {start: 0, end: 3}),
