@@ -6,6 +6,8 @@ const screenHeight = window.screen.height * window.devicePixelRatio;
 
 class PlayGame extends Phaser.Scene 
 {
+    verticalWall: Phaser.GameObjects.Image;
+    horizontalWall: Phaser.GameObjects.Image;
     player: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
     escapeHatch: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
     levelBounds: Phaser.Physics.Arcade.StaticGroup;
@@ -74,11 +76,29 @@ class PlayGame extends Phaser.Scene
 
         this.batteryPower = 20;
         
-        this.player.setRandomPosition(256, 256, screenWidth - 512, screenHeight - 512);
+        let gameSizeScaledWidth: number = parseInt(this.sys.game.canvas.style.width.slice(0, this.sys.game.canvas.style.width.length - 2));
+        let gameSizeScaledHeight: number = parseInt(this.sys.game.canvas.style.height.slice(0, this.sys.game.canvas.style.height.length - 2));
+
+        let scaledHorizontalBoundsWidth = this.horizontalWall.width * (gameSizeScaledWidth / screenWidth);
+        let scaledHorizontalBoundsHeight = this.horizontalWall.height * (gameSizeScaledHeight / screenHeight);
+        
+        let scaledVerticalBoundsWidth = this.verticalWall.width * (gameSizeScaledWidth / screenWidth);
+        let scaledVerticalBoundsHeight = this.verticalWall.height * (gameSizeScaledHeight / screenHeight);
+        this.player.setOrigin(0, 0);
+        this.player.setRandomPosition(
+            scaledHorizontalBoundsHeight * 2, scaledVerticalBoundsWidth * 2, 
+            gameSizeScaledWidth - scaledHorizontalBoundsHeight * 2, gameSizeScaledHeight - scaledVerticalBoundsWidth * 2);
+
         this.player.setVisible(true);
         this.player.setActive(true);
 
-        this.escapeHatch.setRandomPosition(256, 256, screenWidth - 512, screenHeight - 512);
+        console.log(this.horizontalWall.width * (gameSizeScaledWidth / screenWidth), this.horizontalWall.height * (gameSizeScaledHeight / screenHeight));
+        console.log(this.verticalWall.displayWidth * (gameSizeScaledWidth / screenWidth), this.verticalWall.height * (gameSizeScaledHeight / screenHeight));
+        
+        this.escapeHatch.setOrigin(0, 0);
+        this.escapeHatch.setRandomPosition(
+            scaledHorizontalBoundsHeight * 2, scaledVerticalBoundsWidth * 2, 
+            gameSizeScaledWidth - scaledHorizontalBoundsHeight * 2, gameSizeScaledHeight - scaledVerticalBoundsWidth * 2);
 
         let playerPosition = this.player.getCenter();
         let escapeHatchPosition = this.escapeHatch.getCenter();
@@ -107,61 +127,61 @@ class PlayGame extends Phaser.Scene
         //console.log(this.cliffs.countActive(true));
         //console.log(this.cliffs.countActive(false));
 
-        this.cliffs.clear(true, true);
-        this.cliffCount = Phaser.Math.Between(10, 30);
-        for(let i = 0; i < this.cliffCount; ++i)
-            {
-                let randomX = Phaser.Math.Between(512,  screenWidth - 512);
-                while(Math.abs(playerPosition.x - randomX) < 512 
-                && Math.abs(escapeHatchPosition.x - randomX) < 512)
-                    {
-                        randomX = Phaser.Math.Between(256,  screenWidth - 256);
-                    }
+        // this.cliffs.clear(true, true);
+        // this.cliffCount = Phaser.Math.Between(10, 30);
+        // for(let i = 0; i < this.cliffCount; ++i)
+        //     {
+        //         let randomX = Phaser.Math.Between(512,  screenWidth - 512);
+        //         while(Math.abs(playerPosition.x - randomX) < 512 
+        //         && Math.abs(escapeHatchPosition.x - randomX) < 512)
+        //             {
+        //                 randomX = Phaser.Math.Between(256,  screenWidth - 256);
+        //             }
 
-                let randomY = Phaser.Math.Between(512, screenHeight - 512);                
-                while(Math.abs(playerPosition.y - randomY) < 512 
-                && Math.abs(escapeHatchPosition.y - randomY) < 512)
-                    {
-                        randomY = Phaser.Math.Between(256,  screenWidth - 256);
-                    }
+        //         let randomY = Phaser.Math.Between(512, screenHeight - 512);                
+        //         while(Math.abs(playerPosition.y - randomY) < 512 
+        //         && Math.abs(escapeHatchPosition.y - randomY) < 512)
+        //             {
+        //                 randomY = Phaser.Math.Between(256,  screenWidth - 256);
+        //             }
 
-                // while((Math.abs(playerPosition.x - randomX) < 128) 
-                //     || (Math.abs(playerPosition.y - randomY) < 128) 
-                //     || (Math.abs(escapeHatchPosition.x - randomX) < 128) 
-                //     || (Math.abs(escapeHatchPosition.y - randomY) < 128))
-                //     {
-                //         randomX = Phaser.Math.Between(512,  screenWidth - 512);
-                //         randomY = Phaser.Math.Between(512, screenHeight - 512);
-                //         console.log('overlap');
-                //     }
+        //         // while((Math.abs(playerPosition.x - randomX) < 128) 
+        //         //     || (Math.abs(playerPosition.y - randomY) < 128) 
+        //         //     || (Math.abs(escapeHatchPosition.x - randomX) < 128) 
+        //         //     || (Math.abs(escapeHatchPosition.y - randomY) < 128))
+        //         //     {
+        //         //         randomX = Phaser.Math.Between(512,  screenWidth - 512);
+        //         //         randomY = Phaser.Math.Between(512, screenHeight - 512);
+        //         //         console.log('overlap');
+        //         //     }
                 
                 
-                let cliff = new Phaser.Physics.Arcade.Image(this, randomX, randomY, 'tile-1');
-                //test.setOrigin(0.5, 0.5);
+        //         let cliff = new Phaser.Physics.Arcade.Image(this, randomX, randomY, 'tile-1');
+        //         //test.setOrigin(0.5, 0.5);
 
-                // test.setActive(true);
-                // let cliffSprite = new Phaser.Physics.Arcade.Sprite(this, randomX, randomY, 'tile-1');
-                // cliffSprite.setActive(true);
-                // cliffSprite.setInteractive(true);
-                //cliffSprite.enableBody();
-                //this.add.existing(test);
+        //         // test.setActive(true);
+        //         // let cliffSprite = new Phaser.Physics.Arcade.Sprite(this, randomX, randomY, 'tile-1');
+        //         // cliffSprite.setActive(true);
+        //         // cliffSprite.setInteractive(true);
+        //         //cliffSprite.enableBody();
+        //         //this.add.existing(test);
 
-                this.cliffs.add(cliff, true);
-                    // {
-                    //     randomX = Phaser.Math.Between(512,  screenWidth - 512);
-                    //     randomY = Phaser.Math.Between(512, screenHeight - 512);
-                    //     cliffSprite.setRandomPosition(randomX, randomY); 
-                    //     console.log("WUT");
-                    // }
-                //this.cliffs.add(test, true);
-                //let invalid = this.physics.overlap(cliff);
-                // if(invalid)
-                //     {
-                //         this.cliffs.remove(this.cliffs.getLast(), true, true);
-                //         this.cliffCount--;
-                //         console.log("DISABLE!");
-                //     }
-            }
+        //         this.cliffs.add(cliff, true);
+        //             // {
+        //             //     randomX = Phaser.Math.Between(512,  screenWidth - 512);
+        //             //     randomY = Phaser.Math.Between(512, screenHeight - 512);
+        //             //     cliffSprite.setRandomPosition(randomX, randomY); 
+        //             //     console.log("WUT");
+        //             // }
+        //         //this.cliffs.add(test, true);
+        //         //let invalid = this.physics.overlap(cliff);
+        //         // if(invalid)
+        //         //     {
+        //         //         this.cliffs.remove(this.cliffs.getLast(), true, true);
+        //         //         this.cliffCount--;
+        //         //         console.log("DISABLE!");
+        //         //     }
+        //     }
 
 
         this.batteries.clear(true, true);
@@ -382,9 +402,9 @@ class PlayGame extends Phaser.Scene
         const background = this.add.image(screenCenterX, screenCenterY, 'background');
 
         this.levelBounds = this.physics.add.staticGroup();
-        this.levelBounds.create(screenCenterX, screenCenterY - background.height / 2 + 64, 'wall-horizontal');
+        this.horizontalWall = this.levelBounds.create(screenCenterX, screenCenterY - background.height / 2 + 64, 'wall-horizontal');
         this.levelBounds.create(screenCenterX, screenCenterY + background.height / 2 - 64, 'wall-horizontal');
-        this.levelBounds.create(screenCenterX - background.width / 2 + 64, screenCenterY, 'wall-vertical');
+        this.verticalWall = this.levelBounds.create(screenCenterX - background.width / 2 + 64, screenCenterY, 'wall-vertical');
         this.levelBounds.create(screenCenterX + background.width / 2 - 64, screenCenterY, 'wall-vertical');
 
         // const wallHorizontalTop = this.add.image(screenCenterX, screenCenterY - background.height / 2 + 64, 'wall-horizontal');
@@ -440,7 +460,7 @@ class PlayGame extends Phaser.Scene
         //this.powerText = this.add.text(0, 0, 'Power: ' + this.power, { fontSize: '32px', color: '#000'});
 
         this.cliffs = this.physics.add.staticGroup();
-        this.cliffs.setOrigin(0.5, 0.5);
+        //this.cliffs.setOrigin(0.5, 0.5);
         
         this.escapeHatch = this.physics.add.sprite(512, 1024, 'escape-hatch');
         this.escapeHatch.setOrigin(0.5, 0.5);
@@ -448,7 +468,7 @@ class PlayGame extends Phaser.Scene
         this.player = this.physics.add.sprite(512, 512, 'player');
         this.player.setVisible(false);
         this.player.setActive(false);
-        this.player.setOrigin(0.5, 0.5);
+        //this.player.setOrigin(0.5, 0.5);
         
         //this.escapeHatch.setVisible(false);
         
