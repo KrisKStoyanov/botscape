@@ -67,20 +67,33 @@ class PlayGame extends Phaser.Scene
         this.speed = 0;
         this.maxSpeed = 500;
 
-        this.digRevealRadius = 10;
+        this.digRevealRadius = 256;
 
         this.batteryPower = 20;
         
-        this.player.setRandomPosition(128, 128, screenWidth - 128, screenHeight - 128);
+        this.player.setRandomPosition(512, 512, screenWidth - 1024, screenHeight - 1024);
         this.player.setVisible(true);
         this.player.setActive(true);
 
-        this.escapeHatch.setRandomPosition(128, 128, screenWidth - 128, screenHeight - 128);
+        this.escapeHatch.setRandomPosition(512, 512, screenWidth - 1024, screenHeight - 1024);
+
+        let playerPosition = this.player.getCenter();
+        let escapeHatchPosition = this.escapeHatch.getCenter();
+
+        if((Math.abs(playerPosition.x -escapeHatchPosition.x) < this.digRevealRadius) 
+            && (Math.abs(playerPosition.y - escapeHatchPosition.y) < this.digRevealRadius))
+            {
+                this.startGame();
+            }
+            
         //this.escapeHatch.setVisible(false);
 
         this.startedGame = true;
         this.endedGame = false;
         this.pausedGame = false;
+        console.log("player: " + playerPosition.x + " - " + playerPosition.y);
+        console.log("escape hatch: " + escapeHatchPosition.x + " - " + escapeHatchPosition.y);
+        console.log("screenW: " + screenWidth + " - " + "screenH: " + screenHeight);
     }
     endGame(victory: boolean = false): void
     {
@@ -93,6 +106,7 @@ class PlayGame extends Phaser.Scene
             this.titleText.setText("Defeat");
         }
 
+        this.player.setVelocity(0,0);
         this.player.setVisible(false);
         this.player.setActive(false);
 
@@ -194,10 +208,8 @@ class PlayGame extends Phaser.Scene
     playerEscape(player: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody, 
         hatch: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody): void
     {
-        console.log("escaping");
         if(this.escapeHatch.visible)
             {
-                console.log("escaped!");
                 this.endGame(true);
             }
     }
@@ -247,9 +259,6 @@ class PlayGame extends Phaser.Scene
         const screenCenterY = screenHeight / 2;
 
         const background = this.add.image(screenCenterX, screenCenterY, 'background');
-
-        console.log(background.width);
-        console.log(background.height);
 
         this.levelBounds = this.physics.add.staticGroup();
         this.levelBounds.create(screenCenterX, screenCenterY - background.height / 2 + 64, 'wall-horizontal');
@@ -310,15 +319,16 @@ class PlayGame extends Phaser.Scene
         //this.powerText = this.add.text(0, 0, 'Power: ' + this.power, { fontSize: '32px', color: '#000'});
 
         this.platforms = this.physics.add.staticGroup();
-        this.platforms.create(128, 512, 'tile-1');
+        this.platforms.create(1024, 512, 'tile-1');
         //this.platforms.setVisible(false);
 
-        this.escapeHatch = this.physics.add.sprite(256, 256, 'escape-hatch');
+        this.escapeHatch = this.physics.add.sprite(512, 1024, 'escape-hatch');
+        this.escapeHatch.setOrigin(0.5, 0.5);
         
-        this.player = this.physics.add.sprite(128, 128, 'player');
+        this.player = this.physics.add.sprite(512, 512, 'player');
         this.player.setVisible(false);
         this.player.setActive(false);
-
+        this.player.setOrigin(0.5, 0.5);
         
         //this.escapeHatch.setVisible(false);
         
@@ -329,7 +339,7 @@ class PlayGame extends Phaser.Scene
         //this.batteries.setVisible(false);
 
         this.enemyNPCs = this.physics.add.group();
-        this.enemyNPCs.create(128, 128, 'enemy');
+        this.enemyNPCs.create(1024, 1024, 'enemy');
         //this.enemyNPCs.setVisible(false);
 
         this.powerBar = this.add.image(0, 0, 'power-bar');
