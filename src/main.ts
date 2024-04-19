@@ -6,7 +6,7 @@ const screenHeight = window.screen.height * window.devicePixelRatio;
 
 class PlayGame extends Phaser.Scene 
 {
-    platforms: Phaser.Physics.Arcade.StaticGroup;
+    cliffs: Phaser.Physics.Arcade.StaticGroup;
     levelBounds: Phaser.Physics.Arcade.StaticGroup;
     player: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
     escapeHatch: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
@@ -21,6 +21,8 @@ class PlayGame extends Phaser.Scene
     maxSpeed: number;
     batteryPower: number;
     digRevealRadius: number;
+
+    cliffCount: number;
 
     powerText: Phaser.GameObjects.Text;
     titleText: Phaser.GameObjects.Text;
@@ -66,7 +68,7 @@ class PlayGame extends Phaser.Scene
         this.maxPower = 100;
         this.speed = 0;
         this.maxSpeed = 500;
-
+        
         this.digRevealRadius = 256;
 
         this.batteryPower = 20;
@@ -80,20 +82,49 @@ class PlayGame extends Phaser.Scene
         let playerPosition = this.player.getCenter();
         let escapeHatchPosition = this.escapeHatch.getCenter();
 
-        if((Math.abs(playerPosition.x -escapeHatchPosition.x) < this.digRevealRadius) 
+        if((Math.abs(playerPosition.x - escapeHatchPosition.x) < this.digRevealRadius) 
             && (Math.abs(playerPosition.y - escapeHatchPosition.y) < this.digRevealRadius))
             {
                 this.startGame();
             }
             
         //this.escapeHatch.setVisible(false);
+        
+        // console.log(this.cliffs.countActive(true));
+        // console.log(this.cliffs.countActive(false));
+        
+        //this.cliffs.destroy();
+        // for(let i = 0; i < this.cliffCount; ++i)
+        //     {
+        //         this.cliffs.remove(this.cliffs.getChildren()[i], true, true);
+        //     }
+            // console.log(this.cliffs.countActive(true));
+            // console.log(this.cliffs.countActive(false));
+            
+            // this.cliffs.clear();
+
+        //console.log(this.cliffs.countActive(true));
+        //console.log(this.cliffs.countActive(false));
+
+        this.cliffs.clear(true, true)
+        this.cliffCount = Phaser.Math.Between(10, 30);
+
+        for(let i = 0; i < this.cliffCount; ++i)
+            {
+                let randomCliffX = Phaser.Math.Between(256,  screenWidth - 256);
+                let randomCliffY = Phaser.Math.Between(256, screenHeight - 256);
+                while((Math.abs(playerPosition.x - randomCliffX) < 256) && (Math.abs(playerPosition.y - randomCliffY) < 256) 
+                && (Math.abs(escapeHatchPosition.x - randomCliffX) < 256) && (Math.abs(escapeHatchPosition.y - randomCliffY) < 256))
+                    {
+                        randomCliffX = Phaser.Math.Between(256,  screenWidth - 256);
+                        randomCliffY = Phaser.Math.Between(256, screenHeight - 256);
+                    }
+                this.cliffs.create(randomCliffX, randomCliffY, 'tile-1');
+            }
 
         this.startedGame = true;
         this.endedGame = false;
         this.pausedGame = false;
-        console.log("player: " + playerPosition.x + " - " + playerPosition.y);
-        console.log("escape hatch: " + escapeHatchPosition.x + " - " + escapeHatchPosition.y);
-        console.log("screenW: " + screenWidth + " - " + "screenH: " + screenHeight);
     }
     endGame(victory: boolean = false): void
     {
@@ -318,10 +349,9 @@ class PlayGame extends Phaser.Scene
 
         //this.powerText = this.add.text(0, 0, 'Power: ' + this.power, { fontSize: '32px', color: '#000'});
 
-        this.platforms = this.physics.add.staticGroup();
-        this.platforms.create(1024, 512, 'tile-1');
-        //this.platforms.setVisible(false);
-
+        this.cliffs = this.physics.add.staticGroup();
+        this.cliffs.setOrigin(0.5, 0.5);
+        
         this.escapeHatch = this.physics.add.sprite(512, 1024, 'escape-hatch');
         this.escapeHatch.setOrigin(0.5, 0.5);
         
@@ -349,7 +379,7 @@ class PlayGame extends Phaser.Scene
         this.powerBar.setVisible(false);
         this.powerBarOutline.setVisible(false);
 
-        this.physics.add.collider(this.player, this.platforms);
+        this.physics.add.collider(this.player, this.cliffs);
         this.physics.add.overlap(this.player, this.batteries, this.playerCollectBattery, undefined, this);
         this.physics.add.collider(this.player, this.enemyNPCs, this.playerDischargePower, undefined, this);
         this.physics.add.overlap(this.enemyNPCs, this.batteries, this.enemyCollectBattery, undefined, this);
@@ -495,7 +525,6 @@ class PlayGame extends Phaser.Scene
                     {
                         this.playerDig();
                     }
-
                 this.drainPower(this.powerDrainPerTick + (this.powerDrainPerTick * (this.speed / this.maxSpeed) * 0.01) * (Math.abs(this.player.body.velocity.x) + Math.abs(this.player.body.velocity.y)) );
             }
         
