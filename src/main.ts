@@ -13,15 +13,21 @@ class PlayGame extends Phaser.Scene
     levelBounds: Phaser.Physics.Arcade.StaticGroup;
     cliffs: Phaser.Physics.Arcade.StaticGroup;
     batteries: Phaser.Physics.Arcade.StaticGroup;
+    digSpots: Phaser.Physics.Arcade.StaticGroup;
     enemyNPCs: Phaser.Physics.Arcade.Group;
 
     power: number;
     maxPower: number;
     powerDrainPerTick: number;
+    powerDrainDigPerTick: number;
     speed: number;
     maxSpeed: number;
     batteryPower: number;
     digRevealRadius: number;
+
+    digging: boolean;
+    digDuration: number;
+    digTimer: number;
 
     cliffCount: number;
     availableBatteryCount: number;
@@ -65,14 +71,17 @@ class PlayGame extends Phaser.Scene
         this.powerBar.setVisible(true);
         this.powerBarOutline.setVisible(true);
 
-        this.powerDrainPerTick = 0.01;
+        this.powerDrainPerTick = 0.001;
 
         this.power = 50;
         this.maxPower = 100;
         this.speed = 0;
         this.maxSpeed = 500;
+        this.powerDrainDigPerTick = 0.1;
         
         this.digRevealRadius = 256;
+
+        this.digging = false;
 
         this.batteryPower = 20;
         
@@ -100,6 +109,8 @@ class PlayGame extends Phaser.Scene
             scaledHorizontalBoundsHeight * 2, scaledVerticalBoundsWidth * 2, 
             gameSizeScaledWidth - scaledHorizontalBoundsHeight * 2, gameSizeScaledHeight - scaledVerticalBoundsWidth * 2);
 
+        this.escapeHatch.setVisible(false);
+        
         let playerPosition = this.player.getCenter();
         let escapeHatchPosition = this.escapeHatch.getCenter();
 
@@ -109,6 +120,7 @@ class PlayGame extends Phaser.Scene
                 this.startGame();
             }
             
+        this.digSpots.clear(true, true);
         //this.escapeHatch.setVisible(false);
         
         // console.log(this.cliffs.countActive(true));
@@ -344,6 +356,19 @@ class PlayGame extends Phaser.Scene
     }
     playerDig(): void
     {
+        let playerPositionX: number = this.player.getCenter().x;
+        let playerPositionY: number = this.player.getCenter().y;
+        let escapeHatchPositionX: number = this.escapeHatch.getCenter().x;
+        let escapeHatchPositionY: number = this.escapeHatch.getCenter().y;
+        if(Math.abs(playerPositionX - escapeHatchPositionX) < this.digRevealRadius
+        && Math.abs(playerPositionY - escapeHatchPositionY) < this.digRevealRadius)
+        {
+            this.escapeHatch.setVisible(true);
+        }
+        else
+        {
+            this.digSpots.create(this.player.getCenter().x, this.player.getCenter().y, 'dig-spot');
+        }
         // do a collision check with a circle of predefined radius around the hatch to check if it can be revealed
     }
     playerEscape(player: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody, 
@@ -387,6 +412,7 @@ class PlayGame extends Phaser.Scene
         this.load.image('wall-vertical', 'assets/wall-vertical.png');
         this.load.image('restart-button', 'assets/restart-button.png');
         this.load.image('escape-hatch', 'assets/escape-hatch.png');
+        this.load.image('dig-spot', 'assets/dig-spot.png');
     }
     create(): void 
     {
@@ -395,6 +421,9 @@ class PlayGame extends Phaser.Scene
         this.pausedGame = false;
 
         this.buttonMenuPadding = 5.0;
+
+        this.digDuration = 40;
+        this.digTimer = 40;
         
         const screenCenterX = screenWidth / 2;
         const screenCenterY = screenHeight / 2;
@@ -407,6 +436,7 @@ class PlayGame extends Phaser.Scene
         this.verticalWall = this.levelBounds.create(screenCenterX - background.width / 2 + 64, screenCenterY, 'wall-vertical');
         this.levelBounds.create(screenCenterX + background.width / 2 - 64, screenCenterY, 'wall-vertical');
 
+        this.digSpots = this.physics.add.staticGroup();
         // const wallHorizontalTop = this.add.image(screenCenterX, screenCenterY - background.height / 2 + 64, 'wall-horizontal');
         // const wallHorizontalBottom = this.add.image(screenCenterX, screenCenterY + background.height / 2 - 64, 'wall-horizontal');
 
@@ -464,13 +494,12 @@ class PlayGame extends Phaser.Scene
         
         this.escapeHatch = this.physics.add.sprite(512, 1024, 'escape-hatch');
         this.escapeHatch.setOrigin(0.5, 0.5);
-        
+        this.escapeHatch.setVisible(false);
+
         this.player = this.physics.add.sprite(512, 512, 'player');
         this.player.setVisible(false);
         this.player.setActive(false);
         //this.player.setOrigin(0.5, 0.5);
-        
-        //this.escapeHatch.setVisible(false);
         
         this.batteries = this.physics.add.staticGroup();
         //this.batteries.setVisible(false);
@@ -481,7 +510,7 @@ class PlayGame extends Phaser.Scene
 
         this.powerBar = this.add.image(0, 0, 'power-bar');
         this.powerBar.setOrigin(0.5, this.powerBar.originY);
-        this.powerBar.setAlpha(0.6);
+        //this.powerBar.setAlpha(0.6);
         this.powerBarOutline = this.add.image(0, 0, 'power-bar-outline');
         this.powerBar.setVisible(false);
         this.powerBarOutline.setVisible(false);
@@ -527,13 +556,15 @@ class PlayGame extends Phaser.Scene
             repeat: -1
         })
 
-        this.pauseButton.setDepth(1);
-        this.powerBar.setDepth(1);
-        this.powerBarOutline.setDepth(1);
-        this.titleText.setDepth(1);
-        this.restartButton.setDepth(1);
-        this.startButton.setDepth(1);
-        this.helpButton.setDepth(1);
+        this.player.setDepth(1);
+        this.pauseButton.setDepth(2);
+        this.powerBar.setDepth(2);
+        this.powerBarOutline.setDepth(2);
+        this.titleText.setDepth(2);
+        this.restartButton.setDepth(2);
+        this.startButton.setDepth(2);
+        this.helpButton.setDepth(2);
+        this.closeButton.setDepth(2);
 
         this.upKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.W);
         this.leftKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.A);
@@ -639,7 +670,30 @@ class PlayGame extends Phaser.Scene
 
                 if(this.digKey?.isDown)
                     {
-                        this.playerDig();
+                        this.player.setVelocity(0,0);
+                        if(!this.physics.overlap(this.digSpots, this.player))
+                            {
+                                if(this.power > this.powerDrainDigPerTick)
+                                    if(this.digging === false)
+                                    {
+                                        this.digging = true;
+                                    }
+                                    else
+                                    {
+                                        this.power -= this.powerDrainDigPerTick * this.time.timeScale;
+                                        this.digTimer -= this.time.timeScale;
+                                    }
+                                    if(this.digTimer < 0)
+                                        {
+                                            this.playerDig();
+                                            this.digging = false;
+                                            this.digTimer = this.digDuration;
+                                        }
+                            }
+                    }
+                else if(this.digKey?.isUp)
+                    {
+                        this.digTimer = this.digDuration;
                     }
                 this.drainPower(this.powerDrainPerTick + (this.powerDrainPerTick * (this.speed / this.maxSpeed) * 0.01) * (Math.abs(this.player.body.velocity.x) + Math.abs(this.player.body.velocity.y)) );
             }
