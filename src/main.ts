@@ -349,7 +349,7 @@ class PlayGame extends Phaser.Scene
     playerEscape(player: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody, 
         hatch: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody): void
     {
-        if(this.escapeHatch.visible)
+        if(this.escapeHatch.visible && this.startedGame === true)
             {
                 this.endGame(true);
             }
