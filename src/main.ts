@@ -6,11 +6,10 @@ const screenHeight = window.screen.height * window.devicePixelRatio;
 
 class PlayGame extends Phaser.Scene 
 {
-    cliffs: Phaser.Physics.Arcade.StaticGroup;
-    levelBounds: Phaser.Physics.Arcade.StaticGroup;
     player: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
     escapeHatch: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
-    cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
+    levelBounds: Phaser.Physics.Arcade.StaticGroup;
+    cliffs: Phaser.Physics.Arcade.StaticGroup;
     batteries: Phaser.Physics.Arcade.StaticGroup;
     enemyNPCs: Phaser.Physics.Arcade.Group;
 
@@ -23,7 +22,9 @@ class PlayGame extends Phaser.Scene
     digRevealRadius: number;
 
     cliffCount: number;
-
+    availableBatteryCount: number;
+    buriedBatteryCount: number;
+    
     powerText: Phaser.GameObjects.Text;
     titleText: Phaser.GameObjects.Text;
     helpText: Phaser.GameObjects.Text;
@@ -73,17 +74,17 @@ class PlayGame extends Phaser.Scene
 
         this.batteryPower = 20;
         
-        this.player.setRandomPosition(512, 512, screenWidth - 1024, screenHeight - 1024);
+        this.player.setRandomPosition(256, 256, screenWidth - 512, screenHeight - 512);
         this.player.setVisible(true);
         this.player.setActive(true);
 
-        this.escapeHatch.setRandomPosition(512, 512, screenWidth - 1024, screenHeight - 1024);
+        this.escapeHatch.setRandomPosition(256, 256, screenWidth - 512, screenHeight - 512);
 
         let playerPosition = this.player.getCenter();
         let escapeHatchPosition = this.escapeHatch.getCenter();
 
-        if((Math.abs(playerPosition.x - escapeHatchPosition.x) < this.digRevealRadius) 
-            && (Math.abs(playerPosition.y - escapeHatchPosition.y) < this.digRevealRadius))
+        if((Math.abs(playerPosition.x - escapeHatchPosition.x) < 256) 
+            && (Math.abs(playerPosition.y - escapeHatchPosition.y) < 256))
             {
                 this.startGame();
             }
@@ -106,20 +107,109 @@ class PlayGame extends Phaser.Scene
         //console.log(this.cliffs.countActive(true));
         //console.log(this.cliffs.countActive(false));
 
-        this.cliffs.clear(true, true)
+        this.cliffs.clear(true, true);
         this.cliffCount = Phaser.Math.Between(10, 30);
-
         for(let i = 0; i < this.cliffCount; ++i)
             {
-                let randomCliffX = Phaser.Math.Between(256,  screenWidth - 256);
-                let randomCliffY = Phaser.Math.Between(256, screenHeight - 256);
-                while((Math.abs(playerPosition.x - randomCliffX) < 256) && (Math.abs(playerPosition.y - randomCliffY) < 256) 
-                && (Math.abs(escapeHatchPosition.x - randomCliffX) < 256) && (Math.abs(escapeHatchPosition.y - randomCliffY) < 256))
+                let randomX = Phaser.Math.Between(512,  screenWidth - 512);
+                while(Math.abs(playerPosition.x - randomX) < 512 
+                && Math.abs(escapeHatchPosition.x - randomX) < 512)
                     {
-                        randomCliffX = Phaser.Math.Between(256,  screenWidth - 256);
-                        randomCliffY = Phaser.Math.Between(256, screenHeight - 256);
+                        randomX = Phaser.Math.Between(256,  screenWidth - 256);
                     }
-                this.cliffs.create(randomCliffX, randomCliffY, 'tile-1');
+
+                let randomY = Phaser.Math.Between(512, screenHeight - 512);                
+                while(Math.abs(playerPosition.y - randomY) < 512 
+                && Math.abs(escapeHatchPosition.y - randomY) < 512)
+                    {
+                        randomY = Phaser.Math.Between(256,  screenWidth - 256);
+                    }
+
+                // while((Math.abs(playerPosition.x - randomX) < 128) 
+                //     || (Math.abs(playerPosition.y - randomY) < 128) 
+                //     || (Math.abs(escapeHatchPosition.x - randomX) < 128) 
+                //     || (Math.abs(escapeHatchPosition.y - randomY) < 128))
+                //     {
+                //         randomX = Phaser.Math.Between(512,  screenWidth - 512);
+                //         randomY = Phaser.Math.Between(512, screenHeight - 512);
+                //         console.log('overlap');
+                //     }
+                
+                
+                let cliff = new Phaser.Physics.Arcade.Image(this, randomX, randomY, 'tile-1');
+                //test.setOrigin(0.5, 0.5);
+
+                // test.setActive(true);
+                // let cliffSprite = new Phaser.Physics.Arcade.Sprite(this, randomX, randomY, 'tile-1');
+                // cliffSprite.setActive(true);
+                // cliffSprite.setInteractive(true);
+                //cliffSprite.enableBody();
+                //this.add.existing(test);
+
+                this.cliffs.add(cliff, true);
+                    // {
+                    //     randomX = Phaser.Math.Between(512,  screenWidth - 512);
+                    //     randomY = Phaser.Math.Between(512, screenHeight - 512);
+                    //     cliffSprite.setRandomPosition(randomX, randomY); 
+                    //     console.log("WUT");
+                    // }
+                //this.cliffs.add(test, true);
+                //let invalid = this.physics.overlap(cliff);
+                // if(invalid)
+                //     {
+                //         this.cliffs.remove(this.cliffs.getLast(), true, true);
+                //         this.cliffCount--;
+                //         console.log("DISABLE!");
+                //     }
+            }
+
+
+        this.batteries.clear(true, true);
+        this.availableBatteryCount = Phaser.Math.Between(2, 8);
+        for(let i = 0; i < this.availableBatteryCount; ++i)
+            {
+                let randomX = Phaser.Math.Between(256,  screenWidth - 256);
+                let randomY = Phaser.Math.Between(256, screenHeight - 256);
+                while((Math.abs(playerPosition.x - randomX) < 512) 
+                    && (Math.abs(playerPosition.y - randomY) < 512) 
+                    && (Math.abs(escapeHatchPosition.x - randomX) < 512) 
+                    && (Math.abs(escapeHatchPosition.y - randomY) < 512))
+                    {
+                        randomX = Phaser.Math.Between(256,  screenWidth - 256);
+                        randomY = Phaser.Math.Between(256, screenHeight - 256);
+                    }
+                    
+                let battery = this.batteries.create(randomX, randomY, 'battery');
+                let invalid = this.physics.overlap(battery, this.cliffs);
+                if(invalid)
+                {
+                    this.batteries.remove(battery, true, true);
+                    this.availableBatteryCount--;
+                    //console.log("DISABLE! BATTERY:" + i);
+                }
+            }
+
+        this.buriedBatteryCount = Phaser.Math.Between(10, 20);
+        for(let i = 0; i < this.buriedBatteryCount; ++i)
+            {
+                let randomX = Phaser.Math.Between(256,  screenWidth - 256);
+                let randomY = Phaser.Math.Between(256, screenHeight - 256);
+                while((Math.abs(playerPosition.x - randomX) < 512) 
+                    && (Math.abs(playerPosition.y - randomY) < 512) 
+                    && (Math.abs(escapeHatchPosition.x - randomX) < 512) 
+                    && (Math.abs(escapeHatchPosition.y - randomY) < 512))
+                    {
+                        randomX = Phaser.Math.Between(256,  screenWidth - 256);
+                        randomY = Phaser.Math.Between(256, screenHeight - 256);
+                    }
+                let battery = this.batteries.create(randomX, randomY, 'battery');
+                let invalid = this.physics.overlap(battery);
+                if(invalid)
+                    {
+                        this.batteries.remove(this.batteries.getLast(), true, true);
+                        this.buriedBatteryCount--;
+                        //console.log("DISABLE!");
+                    }
             }
 
         this.startedGame = true;
@@ -363,13 +453,10 @@ class PlayGame extends Phaser.Scene
         //this.escapeHatch.setVisible(false);
         
         this.batteries = this.physics.add.staticGroup();
-        this.batteries.create(300, 360, 'battery');
-        this.batteries.create(300, 560, 'battery');
-        this.batteries.create(360, 360, 'battery');
         //this.batteries.setVisible(false);
 
         this.enemyNPCs = this.physics.add.group();
-        this.enemyNPCs.create(1024, 1024, 'enemy');
+        //this.enemyNPCs.create(1024, 1024, 'enemy');
         //this.enemyNPCs.setVisible(false);
 
         this.powerBar = this.add.image(0, 0, 'power-bar');
@@ -380,6 +467,7 @@ class PlayGame extends Phaser.Scene
         this.powerBarOutline.setVisible(false);
 
         this.physics.add.collider(this.player, this.cliffs);
+        this.physics.add.overlap(this.player, this.cliffs);
         this.physics.add.overlap(this.player, this.batteries, this.playerCollectBattery, undefined, this);
         this.physics.add.collider(this.player, this.enemyNPCs, this.playerDischargePower, undefined, this);
         this.physics.add.overlap(this.enemyNPCs, this.batteries, this.enemyCollectBattery, undefined, this);
@@ -418,6 +506,14 @@ class PlayGame extends Phaser.Scene
             frameRate: 12,
             repeat: -1
         })
+
+        this.pauseButton.setDepth(1);
+        this.powerBar.setDepth(1);
+        this.powerBarOutline.setDepth(1);
+        this.titleText.setDepth(1);
+        this.restartButton.setDepth(1);
+        this.startButton.setDepth(1);
+        this.helpButton.setDepth(1);
 
         this.upKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.W);
         this.leftKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.A);
