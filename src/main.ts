@@ -88,9 +88,10 @@ class PlayGame extends Phaser.Scene
         const screenCenterX: number = screenWidth / 2;
         const screenCenterY: number = screenHeight / 2
 
+        this.player.setOrigin(0.5, 0.5);
         this.player.setRandomPosition(
-            screenCenterX - 2560 / 2, 
-            screenCenterY - 2560 / 2,
+            screenCenterX - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height),  
+            screenCenterY - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height),
             screenCenterX + 2560 / 2 - (this.verticalWall.width + this.horizontalWall.height),
             screenCenterY + 2560 / 2 - (this.verticalWall.width + this.horizontalWall.height)
         );
@@ -101,6 +102,7 @@ class PlayGame extends Phaser.Scene
         //console.log(this.horizontalWall.width * (gameSizeScaledWidth / screenWidth), this.horizontalWall.height * (gameSizeScaledHeight / screenHeight));
         //console.log(this.verticalWall.displayWidth * (gameSizeScaledWidth / screenWidth), this.verticalWall.height * (gameSizeScaledHeight / screenHeight));
         
+        this.escapeHatch.setOrigin(0.5, 0.5);
         this.escapeHatch.setRandomPosition(
             screenCenterX - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height), 
             screenCenterY - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height),
@@ -137,9 +139,11 @@ class PlayGame extends Phaser.Scene
                 );
 
                 let cliff = new Phaser.Physics.Arcade.Sprite(this, randomX, randomY, 'tile-1');
+                cliff.setOrigin(0.5, 0.5);
                 const invalid = this.physics.overlap(cliff, this.player) 
+                || this.physics.overlap(cliff, this.escapeHatch)
                 || this.physics.overlap(cliff, this.batteries)
-                || this.physics.overlap(cliff, this.cliffs); 
+                || this.physics.overlap(cliff, this.cliffs);
                 if(invalid)
                 {
                     invalidCliffCount++;
@@ -168,8 +172,11 @@ class PlayGame extends Phaser.Scene
                 );
 
                 let battery = new Phaser.Physics.Arcade.Sprite(this, randomX, randomY, 'battery');
+                battery.setOrigin(0.5, 0.5)
                 const invalid = this.physics.overlap(battery, this.player) 
-                || this.physics.overlap(battery, this.batteries); 
+                || this.physics.overlap(battery, this.escapeHatch)
+                || this.physics.overlap(battery, this.batteries)
+                || this.physics.overlap(battery, this.cliffs); 
                 if(invalid)
                 {
                     invalidAvailableBatteryCount++;
@@ -197,8 +204,11 @@ class PlayGame extends Phaser.Scene
                 );
 
                     let battery = new Phaser.Physics.Arcade.Sprite(this, randomX, randomY, 'battery');
+                    battery.setOrigin(0.5, 0.5);
                     const invalid = this.physics.overlap(battery, this.player) 
-                    || this.physics.overlap(battery, this.batteries); 
+                    || this.physics.overlap(battery, this.escapeHatch)
+                    || this.physics.overlap(battery, this.batteries)
+                    || this.physics.overlap(battery, this.cliffs);
                     if(invalid)
                     {
                         invalidBuriedBatteryCount++;
