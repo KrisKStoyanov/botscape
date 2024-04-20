@@ -93,7 +93,7 @@ class PlayGame extends Phaser.Scene
         
         let scaledVerticalBoundsWidth = this.verticalWall.width * (gameSizeScaledWidth / screenWidth);
         let scaledVerticalBoundsHeight = this.verticalWall.height * (gameSizeScaledHeight / screenHeight);
-        this.player.setOrigin(0, 0);
+        
         this.player.setRandomPosition(
             scaledHorizontalBoundsHeight * 2, scaledVerticalBoundsWidth * 2, 
             gameSizeScaledWidth - scaledHorizontalBoundsHeight * 2, gameSizeScaledHeight - scaledVerticalBoundsWidth * 2);
@@ -104,7 +104,6 @@ class PlayGame extends Phaser.Scene
         console.log(this.horizontalWall.width * (gameSizeScaledWidth / screenWidth), this.horizontalWall.height * (gameSizeScaledHeight / screenHeight));
         console.log(this.verticalWall.displayWidth * (gameSizeScaledWidth / screenWidth), this.verticalWall.height * (gameSizeScaledHeight / screenHeight));
         
-        this.escapeHatch.setOrigin(0, 0);
         this.escapeHatch.setRandomPosition(
             scaledHorizontalBoundsHeight * 2, scaledVerticalBoundsWidth * 2, 
             gameSizeScaledWidth - scaledHorizontalBoundsHeight * 2, gameSizeScaledHeight - scaledVerticalBoundsWidth * 2);
@@ -575,6 +574,7 @@ class PlayGame extends Phaser.Scene
         this.powerBar.setDepth(2);
         this.powerBarOutline.setDepth(2);
         this.titleText.setDepth(2);
+        this.helpText.setDepth(2);
         this.restartButton.setDepth(2);
         this.startButton.setDepth(2);
         this.helpButton.setDepth(2);
