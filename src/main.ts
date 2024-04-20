@@ -85,28 +85,28 @@ class PlayGame extends Phaser.Scene
 
         this.batteryPower = 20;
         
-        let gameSizeScaledWidth: number = parseInt(this.sys.game.canvas.style.width.slice(0, this.sys.game.canvas.style.width.length - 2));
-        let gameSizeScaledHeight: number = parseInt(this.sys.game.canvas.style.height.slice(0, this.sys.game.canvas.style.height.length - 2));
+        const screenCenterX: number = screenWidth / 2;
+        const screenCenterY: number = screenHeight / 2
 
-        let scaledHorizontalBoundsWidth = this.horizontalWall.width * (gameSizeScaledWidth / screenWidth);
-        let scaledHorizontalBoundsHeight = this.horizontalWall.height * (gameSizeScaledHeight / screenHeight);
-        
-        let scaledVerticalBoundsWidth = this.verticalWall.width * (gameSizeScaledWidth / screenWidth);
-        let scaledVerticalBoundsHeight = this.verticalWall.height * (gameSizeScaledHeight / screenHeight);
-        
         this.player.setRandomPosition(
-            scaledHorizontalBoundsHeight * 2, scaledVerticalBoundsWidth * 2, 
-            gameSizeScaledWidth - scaledHorizontalBoundsHeight * 2, gameSizeScaledHeight - scaledVerticalBoundsWidth * 2);
+            screenCenterX - 2560 / 2, 
+            screenCenterY - 2560 / 2,
+            screenCenterX + 2560 / 2 - (this.verticalWall.width + this.horizontalWall.height),
+            screenCenterY + 2560 / 2 - (this.verticalWall.width + this.horizontalWall.height)
+        );
 
         this.player.setVisible(true);
         this.player.setActive(true);
 
-        console.log(this.horizontalWall.width * (gameSizeScaledWidth / screenWidth), this.horizontalWall.height * (gameSizeScaledHeight / screenHeight));
-        console.log(this.verticalWall.displayWidth * (gameSizeScaledWidth / screenWidth), this.verticalWall.height * (gameSizeScaledHeight / screenHeight));
+        //console.log(this.horizontalWall.width * (gameSizeScaledWidth / screenWidth), this.horizontalWall.height * (gameSizeScaledHeight / screenHeight));
+        //console.log(this.verticalWall.displayWidth * (gameSizeScaledWidth / screenWidth), this.verticalWall.height * (gameSizeScaledHeight / screenHeight));
         
         this.escapeHatch.setRandomPosition(
-            scaledHorizontalBoundsHeight * 2, scaledVerticalBoundsWidth * 2, 
-            gameSizeScaledWidth - scaledHorizontalBoundsHeight * 2, gameSizeScaledHeight - scaledVerticalBoundsWidth * 2);
+            screenCenterX - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height), 
+            screenCenterY - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height),
+            screenCenterX + 2560 / 2 - (this.verticalWall.width + this.horizontalWall.height),
+            screenCenterY + 2560 / 2 - (this.verticalWall.width + this.horizontalWall.height)
+        );
 
         this.escapeHatch.setVisible(false);
         
@@ -128,11 +128,13 @@ class PlayGame extends Phaser.Scene
         for(let i = 0; i < this.cliffCount; ++i)
             {
                 let randomX = Phaser.Math.Between(
-                    scaledHorizontalBoundsHeight * 2, 
-                    gameSizeScaledWidth - scaledHorizontalBoundsHeight * 2);
+                    screenCenterX - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height),
+                    screenCenterX + 2560 / 2 - (this.verticalWall.width + this.horizontalWall.height)
+                );
                 let randomY = Phaser.Math.Between(
-                    scaledHorizontalBoundsHeight * 2, 
-                    gameSizeScaledHeight - scaledVerticalBoundsWidth * 2);
+                    screenCenterY - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height),  
+                    screenCenterY + 2560 / 2 - (this.verticalWall.width + this.horizontalWall.height)
+                );
 
                 let cliff = new Phaser.Physics.Arcade.Sprite(this, randomX, randomY, 'tile-1');
                 const invalid = this.physics.overlap(cliff, this.player) 
@@ -157,11 +159,13 @@ class PlayGame extends Phaser.Scene
         for(let i = 0; i < this.availableBatteryCount; ++i)
             {
                 let randomX = Phaser.Math.Between(
-                    scaledHorizontalBoundsHeight * 2, 
-                    gameSizeScaledWidth - scaledHorizontalBoundsHeight * 2);
+                    screenCenterX - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height),
+                    screenCenterX + 2560 / 2 - (this.verticalWall.width + this.horizontalWall.height)
+                );
                 let randomY = Phaser.Math.Between(
-                    scaledHorizontalBoundsHeight * 2, 
-                    gameSizeScaledHeight - scaledVerticalBoundsWidth * 2);
+                    screenCenterY - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height), 
+                    screenCenterY + 2560 / 2 - (this.verticalWall.width + this.horizontalWall.height)
+                );
 
                 let battery = new Phaser.Physics.Arcade.Sprite(this, randomX, randomY, 'battery');
                 const invalid = this.physics.overlap(battery, this.player) 
@@ -184,11 +188,13 @@ class PlayGame extends Phaser.Scene
         for(let i = 0; i < this.buriedBatteryCount; ++i)
             {
                 let randomX = Phaser.Math.Between(
-                    scaledHorizontalBoundsHeight * 2, 
-                    gameSizeScaledWidth - scaledHorizontalBoundsHeight * 2);
+                    screenCenterX - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height),
+                    screenCenterX + 2560 / 2 - (this.verticalWall.width + this.horizontalWall.height)
+                );
                 let randomY = Phaser.Math.Between(
-                    scaledHorizontalBoundsHeight * 2, 
-                    gameSizeScaledHeight - scaledVerticalBoundsWidth * 2);
+                    screenCenterY - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height), 
+                    screenCenterY + 2560 / 2 - (this.verticalWall.width + this.horizontalWall.height)
+                );
 
                     let battery = new Phaser.Physics.Arcade.Sprite(this, randomX, randomY, 'battery');
                     const invalid = this.physics.overlap(battery, this.player) 
