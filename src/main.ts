@@ -744,6 +744,10 @@ class PlayGame extends Phaser.Scene
                     {
                         this.testNPC.chase(this.player.body.position);
                     }
+                else
+                {
+                    this.testNPC.idle();
+                }
             }
         
 

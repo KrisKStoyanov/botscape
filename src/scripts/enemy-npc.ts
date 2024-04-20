@@ -12,12 +12,10 @@ class EnemyNPC extends Phaser.Physics.Arcade.Sprite
         this.visibilityDistance = 512;
         scene.add.existing(this);
         scene.physics.add.existing(this, false);
-        //(this.debugDirection);
     }
 
     update(deltaTime: number): void
     {
-        //console.log('updating');
         this.refocusTimer -= deltaTime;
         if(this.refocusTimer < 0)
             {
@@ -38,27 +36,18 @@ class EnemyNPC extends Phaser.Physics.Arcade.Sprite
     idle(): void
     {
         this.setVelocity(0.0, 0.0);
+        console.log('idle');
     }
 
     search(target: Phaser.Math.Vector2): boolean
     {
-        let targetNormalized: Phaser.Math.Vector2 = new Phaser.Math.Vector2(target.x, target.y).normalize();
-        let originNormalized: Phaser.Math.Vector2 = new Phaser.Math.Vector2(this.body?.position.x, this.body?.position.y).normalize();
-        let dp = (originNormalized.dot(targetNormalized));
-        console.log(dp);
-
-        return (dp === 0);
-        //let dp = this.direction.dot(target);
-        // if(dp === 0)
-        //     {
-        //         console.log('visible');
-        //         return true;
-        //     }
-        //     else 
-        //     {
-        //         console.log('invisible');
-        //         return false;
-        //     }
+        let currentDirection = new Phaser.Math.Vector2(this.direction.x, this.direction.y).normalize();
+        let directionToObserveX = this.body?.position.x || 0;
+        let directionToObserveY = this.body?.position.y || 0;
+        let directionToObserve = new Phaser.Math.Vector2(directionToObserveX - target.x, directionToObserveY - target.y).negate().normalize();
+        let dp = (directionToObserve.dot(currentDirection));
+        
+        return (dp > 0.66);
     }
 
     patrol(): void
@@ -69,13 +58,14 @@ class EnemyNPC extends Phaser.Physics.Arcade.Sprite
 
     chase(target: Phaser.Math.Vector2): void
     {
+        console.log('chasing');
         let forwardX = this.body?.position.x || 0.0;
         let forwardY = this.body?.position.y || 0.0;
 
         forwardX -= target.x;
         forwardY -= target.y;
         let forward = new Phaser.Math.Vector2(forwardX, forwardY).negate().normalize();
-        this.direction = forward;
+        //this.direction = forward;
 
         this.setVelocity(forward.x * this.movementSpeed, forward.y * this.movementSpeed);
     }
