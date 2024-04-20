@@ -8,6 +8,8 @@ class PlayGame extends Phaser.Scene
 {
     verticalWall: Phaser.GameObjects.Image;
     horizontalWall: Phaser.GameObjects.Image;
+    digSpot: Phaser.GameObjects.Image;
+
     player: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
     escapeHatch: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
     levelBounds: Phaser.Physics.Arcade.StaticGroup;
@@ -29,9 +31,13 @@ class PlayGame extends Phaser.Scene
     digDuration: number;
     digTimer: number;
 
+    randomSpawnCooldown: number;
+    randomSpawnTimer: number;
+
     cliffCount: number;
     availableBatteryCount: number;
     buriedBatteryCount: number;
+    buriedEnemyCount: number;
     
     powerText: Phaser.GameObjects.Text;
     titleText: Phaser.GameObjects.Text;
@@ -88,7 +94,6 @@ class PlayGame extends Phaser.Scene
         const screenCenterX: number = screenWidth / 2;
         const screenCenterY: number = screenHeight / 2
 
-        this.player.setOrigin(0.5, 0.5);
         this.player.setRandomPosition(
             screenCenterX - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height),  
             screenCenterY - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height),
@@ -102,7 +107,6 @@ class PlayGame extends Phaser.Scene
         //console.log(this.horizontalWall.width * (gameSizeScaledWidth / screenWidth), this.horizontalWall.height * (gameSizeScaledHeight / screenHeight));
         //console.log(this.verticalWall.displayWidth * (gameSizeScaledWidth / screenWidth), this.verticalWall.height * (gameSizeScaledHeight / screenHeight));
         
-        this.escapeHatch.setOrigin(0.5, 0.5);
         this.escapeHatch.setRandomPosition(
             screenCenterX - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height), 
             screenCenterY - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height),
@@ -124,6 +128,7 @@ class PlayGame extends Phaser.Scene
         this.digSpots.clear(true, true);
         this.batteries.clear(true, true);
         this.cliffs.clear(true, true);
+        this.enemyNPCs.clear(true, true);
         
         this.cliffCount = Phaser.Math.Between(10, 30);
         let invalidCliffCount = 0;
@@ -139,7 +144,6 @@ class PlayGame extends Phaser.Scene
                 );
 
                 let cliff = new Phaser.Physics.Arcade.Sprite(this, randomX, randomY, 'tile-1');
-                cliff.setOrigin(0.5, 0.5);
                 const invalid = this.physics.overlap(cliff, this.player) 
                 || this.physics.overlap(cliff, this.escapeHatch)
                 || this.physics.overlap(cliff, this.batteries)
@@ -172,7 +176,6 @@ class PlayGame extends Phaser.Scene
                 );
 
                 let battery = new Phaser.Physics.Arcade.Sprite(this, randomX, randomY, 'battery');
-                battery.setOrigin(0.5, 0.5)
                 const invalid = this.physics.overlap(battery, this.player) 
                 || this.physics.overlap(battery, this.escapeHatch)
                 || this.physics.overlap(battery, this.batteries)
@@ -204,7 +207,6 @@ class PlayGame extends Phaser.Scene
                 );
 
                     let battery = new Phaser.Physics.Arcade.Sprite(this, randomX, randomY, 'battery');
-                    battery.setOrigin(0.5, 0.5);
                     const invalid = this.physics.overlap(battery, this.player) 
                     || this.physics.overlap(battery, this.escapeHatch)
                     || this.physics.overlap(battery, this.batteries)
@@ -378,6 +380,47 @@ class PlayGame extends Phaser.Scene
     {
         this.power -= this.time.timeScale * amount;
     }
+    randomSpawnAtDigSpot(): void
+    {
+        if(this.digSpots.children.entries.length === 0)
+            {
+                return;
+            }
+        let randomValue: number = Phaser.Math.Between(0, 100);
+        if(randomValue < 25)
+            {
+                return;
+            }
+
+        let randomDigSpotIndex = Phaser.Math.Between(0, this.digSpots.getLength() - 1);
+        if(this.digSpots.getChildren()[randomDigSpotIndex].body != undefined)
+            {
+                let digSpotSpawnPositionX: number = this.digSpots.getChildren()[randomDigSpotIndex].body?.position.x || 0;
+                let digSpotSpawnPositionY: number = this.digSpots.getChildren()[randomDigSpotIndex].body?.position.y || 0;
+                
+                digSpotSpawnPositionX += this.digSpot.width / 2;
+                digSpotSpawnPositionY += this.digSpot.height / 2;
+
+                if(randomValue < 90)
+                    {
+                        let battery = new Phaser.Physics.Arcade.Sprite(this, digSpotSpawnPositionX, digSpotSpawnPositionY, 'battery');
+                        const invalid = this.physics.overlap(battery, this.batteries);
+                        console.log(invalid);
+                        if(invalid)
+                            {
+                                battery.destroy(true);
+                            } 
+                            else
+                            {
+                                this.batteries.add(battery, true);
+                            }
+                    }
+                    else
+                    {
+                        this.enemyNPCs.create(digSpotSpawnPositionX, digSpotSpawnPositionY, 'enemy');
+                    }
+            }
+    }
     preload(): void 
     {
         this.load.image('logo', 'assets/woodpecker.png'); 
@@ -408,6 +451,9 @@ class PlayGame extends Phaser.Scene
         this.digDuration = 40;
         this.digTimer = 40;
         
+        this.randomSpawnCooldown = 120;
+        this.randomSpawnTimer = 120;
+
         const screenCenterX = screenWidth / 2;
         const screenCenterY = screenHeight / 2;
 
@@ -419,12 +465,11 @@ class PlayGame extends Phaser.Scene
         this.verticalWall = this.levelBounds.create(screenCenterX - background.width / 2 + 64, screenCenterY, 'wall-vertical');
         this.levelBounds.create(screenCenterX + background.width / 2 - 64, screenCenterY, 'wall-vertical');
 
-        this.digSpots = this.physics.add.staticGroup();
-        // const wallHorizontalTop = this.add.image(screenCenterX, screenCenterY - background.height / 2 + 64, 'wall-horizontal');
-        // const wallHorizontalBottom = this.add.image(screenCenterX, screenCenterY + background.height / 2 - 64, 'wall-horizontal');
+        this.digSpot = new Phaser.GameObjects.Image(this, 0, 0, 'dig-spot');
+        this.digSpot.setVisible(false);
+        this.digSpot.setActive(false);
 
-        // const wallVerticalTop = this.add.image(screenCenterX - background.width / 2 + 64, screenCenterY, 'wall-vertical');
-        // const wallVerticalBottom = this.add.image(screenCenterX + background.width / 2 - 64, screenCenterY, 'wall-vertical');
+        this.digSpots = this.physics.add.staticGroup();
 
         this.titleText = this.add.text(screenCenterX, screenCenterY, 'Dayglow', { fontSize: '64px', color: '#000'});
         this.titleText.setOrigin(0.5, 0.5);
@@ -473,20 +518,16 @@ class PlayGame extends Phaser.Scene
         //this.powerText = this.add.text(0, 0, 'Power: ' + this.power, { fontSize: '32px', color: '#000'});
 
         this.cliffs = this.physics.add.staticGroup();
-        //this.cliffs.setOrigin(0.5, 0.5);
         
         this.escapeHatch = this.physics.add.sprite(512, 1024, 'escape-hatch');
-        this.escapeHatch.setOrigin(0.5, 0.5);
         this.escapeHatch.setVisible(false);
 
         this.player = this.physics.add.sprite(512, 512, 'player');
         this.player.setVisible(false);
         this.player.setActive(false);
-        //this.player.setOrigin(0.5, 0.5);
         
         this.batteries = this.physics.add.staticGroup();
-        //this.batteries.setVisible(false);
-
+        
         this.enemyNPCs = this.physics.add.group();
         //this.enemyNPCs.create(1024, 1024, 'enemy');
         //this.enemyNPCs.setVisible(false);
@@ -678,6 +719,13 @@ class PlayGame extends Phaser.Scene
                 else if(this.digKey?.isUp)
                     {
                         this.digTimer = this.digDuration;
+                    }
+
+                this.randomSpawnTimer -= this.time.timeScale * 0.5;
+                if(this.randomSpawnTimer < 0)
+                    {
+                        this.randomSpawnAtDigSpot();
+                        this.randomSpawnTimer = this.randomSpawnCooldown;
                     }
                 this.drainPower(this.powerDrainPerTick + (this.powerDrainPerTick * (this.speed / this.maxSpeed) * 0.01) * (Math.abs(this.player.body.velocity.x) + Math.abs(this.player.body.velocity.y)) );
             }
