@@ -122,82 +122,36 @@ class PlayGame extends Phaser.Scene
         this.digSpots.clear(true, true);
         this.batteries.clear(true, true);
         this.cliffs.clear(true, true);
-        //this.escapeHatch.setVisible(false);
         
-        // console.log(this.cliffs.countActive(true));
-        // console.log(this.cliffs.countActive(false));
-        
-        //this.cliffs.destroy();
-        // for(let i = 0; i < this.cliffCount; ++i)
-        //     {
-        //         this.cliffs.remove(this.cliffs.getChildren()[i], true, true);
-        //     }
-            // console.log(this.cliffs.countActive(true));
-            // console.log(this.cliffs.countActive(false));
-            
-            // this.cliffs.clear();
+        this.cliffCount = Phaser.Math.Between(10, 30);
+        let invalidCliffCount = 0;
+        for(let i = 0; i < this.cliffCount; ++i)
+            {
+                let randomX = Phaser.Math.Between(
+                    scaledHorizontalBoundsHeight * 2, 
+                    gameSizeScaledWidth - scaledHorizontalBoundsHeight * 2);
+                let randomY = Phaser.Math.Between(
+                    scaledHorizontalBoundsHeight * 2, 
+                    gameSizeScaledHeight - scaledVerticalBoundsWidth * 2);
 
-        //console.log(this.cliffs.countActive(true));
-        //console.log(this.cliffs.countActive(false));
-
-        // this.cliffs.clear(true, true);
-        // this.cliffCount = Phaser.Math.Between(10, 30);
-        // for(let i = 0; i < this.cliffCount; ++i)
-        //     {
-        //         let randomX = Phaser.Math.Between(512,  screenWidth - 512);
-        //         while(Math.abs(playerPosition.x - randomX) < 512 
-        //         && Math.abs(escapeHatchPosition.x - randomX) < 512)
-        //             {
-        //                 randomX = Phaser.Math.Between(256,  screenWidth - 256);
-        //             }
-
-        //         let randomY = Phaser.Math.Between(512, screenHeight - 512);                
-        //         while(Math.abs(playerPosition.y - randomY) < 512 
-        //         && Math.abs(escapeHatchPosition.y - randomY) < 512)
-        //             {
-        //                 randomY = Phaser.Math.Between(256,  screenWidth - 256);
-        //             }
-
-        //         // while((Math.abs(playerPosition.x - randomX) < 128) 
-        //         //     || (Math.abs(playerPosition.y - randomY) < 128) 
-        //         //     || (Math.abs(escapeHatchPosition.x - randomX) < 128) 
-        //         //     || (Math.abs(escapeHatchPosition.y - randomY) < 128))
-        //         //     {
-        //         //         randomX = Phaser.Math.Between(512,  screenWidth - 512);
-        //         //         randomY = Phaser.Math.Between(512, screenHeight - 512);
-        //         //         console.log('overlap');
-        //         //     }
-                
-                
-        //         let cliff = new Phaser.Physics.Arcade.Image(this, randomX, randomY, 'tile-1');
-        //         //test.setOrigin(0.5, 0.5);
-
-        //         // test.setActive(true);
-        //         // let cliffSprite = new Phaser.Physics.Arcade.Sprite(this, randomX, randomY, 'tile-1');
-        //         // cliffSprite.setActive(true);
-        //         // cliffSprite.setInteractive(true);
-        //         //cliffSprite.enableBody();
-        //         //this.add.existing(test);
-
-        //         this.cliffs.add(cliff, true);
-        //             // {
-        //             //     randomX = Phaser.Math.Between(512,  screenWidth - 512);
-        //             //     randomY = Phaser.Math.Between(512, screenHeight - 512);
-        //             //     cliffSprite.setRandomPosition(randomX, randomY); 
-        //             //     console.log("WUT");
-        //             // }
-        //         //this.cliffs.add(test, true);
-        //         //let invalid = this.physics.overlap(cliff);
-        //         // if(invalid)
-        //         //     {
-        //         //         this.cliffs.remove(this.cliffs.getLast(), true, true);
-        //         //         this.cliffCount--;
-        //         //         console.log("DISABLE!");
-        //         //     }
-        //     }
+                let cliff = new Phaser.Physics.Arcade.Sprite(this, randomX, randomY, 'tile-1');
+                const invalid = this.physics.overlap(cliff, this.player) 
+                || this.physics.overlap(cliff, this.batteries)
+                || this.physics.overlap(cliff, this.cliffs); 
+                if(invalid)
+                {
+                    invalidCliffCount++;
+                    cliff.destroy(true);
+                    console.log("DISABLE! CLIFF:" + i);
+                }
+                else
+                {
+                    this.cliffs.add(cliff, true);
+                }
+                this.cliffCount -= invalidCliffCount;
+            }
 
 
-        this.batteries.clear(true, true);
         this.availableBatteryCount = Phaser.Math.Between(2, 6);
         let invalidAvailableBatteryCount = 0;
         for(let i = 0; i < this.availableBatteryCount; ++i)
