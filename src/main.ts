@@ -141,7 +141,33 @@ class PlayGame extends Phaser.Scene
                     screenCenterY + 2560 / 2 - (this.verticalWall.width + this.horizontalWall.height)
                 );
 
-                let cliff = new Phaser.Physics.Arcade.Sprite(this, randomX, randomY, 'tile-1');
+                let cliffRandomImageIndex = Phaser.Math.Between(1, 4);
+                let cliffRandomImageName: string = '';
+                switch(cliffRandomImageIndex)
+                {
+                    case 1:
+                        {
+                            cliffRandomImageName = 'tile-1'
+                            break;
+                        }
+                    case 2:
+                        {
+                            cliffRandomImageName = 'tile-2'
+                            break;
+                        }
+                    case 3:
+                        {
+                            cliffRandomImageName = 'tile-3'
+                            break;
+                        }
+                    case 4:
+                        {
+                            cliffRandomImageName = 'tile-4'
+                            break;
+                        }
+                }
+ 
+                let cliff = new Phaser.Physics.Arcade.Sprite(this, randomX, randomY, cliffRandomImageName);
                 const invalid = this.physics.overlap(cliff, this.player) 
                 || this.physics.overlap(cliff, this.escapeHatch)
                 || this.physics.overlap(cliff, this.batteries)
@@ -231,11 +257,11 @@ class PlayGame extends Phaser.Scene
     {
         if(victory === true)
         {
-            this.titleText.setText("Victory");
+            this.titleText.setText("Success!");
         }
         else
         {
-            this.titleText.setText("Defeat");
+            this.titleText.setText("Game Over!");
         }
 
         this.player.setVelocity(0,0);
@@ -425,6 +451,9 @@ class PlayGame extends Phaser.Scene
         this.load.image('background', 'assets/background.png');
         this.load.spritesheet('player', 'assets/player.png', {frameWidth: 128, frameHeight: 128});
         this.load.image('tile-1', 'assets/tile-1.png');
+        this.load.image('tile-2', 'assets/tile-2.png');
+        this.load.image('tile-3', 'assets/tile-3.png');
+        this.load.image('tile-4', 'assets/tile-4.png');
         this.load.image('battery', 'assets/battery.png');
         this.load.image('enemy', 'assets/enemy.png');
         this.load.image('power-bar', 'assets/power-bar.png');
@@ -473,11 +502,17 @@ class PlayGame extends Phaser.Scene
         this.titleText.setOrigin(0.5, 0.5);
 
         this.helpText = this.add.text(screenCenterX, screenCenterY + this.titleText.height, 
+            'Find the escape hatch before your power runs out!\n' +
+            'Every action drains power!\n' +
+            'Collect batteries scattered through out the zone to replenish your power!\n' +
+            'Beware the lost survivors ' +
+            'who failed to escape and have remained buried here!\n' +
             '[W] - Move Up \n'+
             '[A] - Move Left \n' +
             '[S] - Move Down \n' +
-            '[D] - Move Right \n', 
-            { fontSize: '32px', color: '#000'});
+            '[D] - Move Right \n' +
+            'Hold [SPACE] - Dig \n',  
+            { fontSize: '26px', color: '#000', align: 'center'});
         this.helpText.setOrigin(0.5, 0.5);
         
         this.helpText.setVisible(false);
@@ -578,16 +613,18 @@ class PlayGame extends Phaser.Scene
             repeat: -1
         })
 
-        this.player.setDepth(1);
-        this.pauseButton.setDepth(2);
-        this.powerBar.setDepth(2);
-        this.powerBarOutline.setDepth(2);
-        this.titleText.setDepth(2);
-        this.helpText.setDepth(2);
-        this.restartButton.setDepth(2);
-        this.startButton.setDepth(2);
-        this.helpButton.setDepth(2);
-        this.closeButton.setDepth(2);
+        this.escapeHatch.setDepth(1);
+        this.player.setDepth(2);
+        this.enemyNPCs.setDepth(2);
+        this.pauseButton.setDepth(3);
+        this.powerBar.setDepth(4);
+        this.powerBarOutline.setDepth(3);
+        this.titleText.setDepth(3);
+        this.helpText.setDepth(3);
+        this.restartButton.setDepth(3);
+        this.startButton.setDepth(3);
+        this.helpButton.setDepth(3);
+        this.closeButton.setDepth(3);
 
         this.upKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.W);
         this.leftKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.A);
@@ -627,10 +664,10 @@ class PlayGame extends Phaser.Scene
                     
             //this.powerText.setPosition(this.player.x - screenWidth / 2, this.player.y - screenHeight / 2);
 
-            this.powerBar.setPosition(cameraPositionX + this.powerBar.width * 0.5 + 64, 
-                cameraPositionY + this.powerBar.height * 0.5 + 64);
-            this.powerBarOutline.setPosition(cameraPositionX + this.powerBarOutline.width * 0.5 + 64,
-                cameraPositionY + this.powerBarOutline.height * 0.5 + 64);
+            this.powerBar.setPosition(cameraPositionX + this.powerBar.width / 2, 
+                cameraPositionY + this.powerBar.height / 2);
+            this.powerBarOutline.setPosition(cameraPositionX + this.powerBarOutline.width / 2,
+                cameraPositionY + this.powerBarOutline.height / 2);
             
             this.pauseButton.setPosition(cameraPositionX + screenWidth - this.startButton.width,
                 cameraPositionY + this.pauseButton.height);
