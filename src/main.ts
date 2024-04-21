@@ -739,15 +739,15 @@ class PlayGame extends Phaser.Scene
                     }
                 this.drainPower(this.powerDrainPerTick + (this.powerDrainPerTick * (this.speed / this.maxSpeed) * 0.01) * (Math.abs(this.player.body.velocity.x) + Math.abs(this.player.body.velocity.y)) );
                 
-                this.testNPC.update(this.time.timeScale);
-                if(this.testNPC.search(this.player.body.position))
-                    {
-                        this.testNPC.chase(this.player.body.position);
-                    }
-                else
-                {
-                    this.testNPC.idle();
-                }
+                this.testNPC.update(this.time.timeScale, this.player.body.position);
+                // if(this.testNPC.search(this.player.body.position))
+                //     {
+                //         this.testNPC.chase(this.player.body.position);
+                //     }
+                // else
+                // {
+                //     this.testNPC.idle();
+                // }
             }
         
 
