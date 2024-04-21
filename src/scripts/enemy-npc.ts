@@ -9,6 +9,7 @@ class EnemyNPC extends Phaser.Physics.Arcade.Sprite
         this.refocusTimer = 60;
         this.refocusCooldown = 60;
         this.direction = new Phaser.Math.Vector2(-1.0, 0.0);
+        this.velocity = new Phaser.Math.Vector2(0.0, 0.0);
         this.targetPosition = new Phaser.Math.Vector2(this.body?.position.x || 0, this.body?.position.y || 0);
         this.visibilityDistance = 512;
         this.chasing = false;
@@ -18,6 +19,7 @@ class EnemyNPC extends Phaser.Physics.Arcade.Sprite
 
     update(deltaTime: number, target: Phaser.Math.Vector2): void
     {
+        this.setVelocity(this.velocity.x, this.velocity.y);
         this.refocusTimer -= deltaTime;
         if(this.refocusTimer < 0)
             {
@@ -70,7 +72,9 @@ class EnemyNPC extends Phaser.Physics.Arcade.Sprite
 
     idle(): void
     {
-        this.setVelocity(0.0, 0.0);
+        this.velocity.x = 0.0;
+        this.velocity.y = 0.0;
+        this.setVelocity(this.velocity.x, this.velocity.y);
         console.log('idle');
     }
 
@@ -96,7 +100,9 @@ class EnemyNPC extends Phaser.Physics.Arcade.Sprite
 
         let patrolForward: Phaser.Math.Vector2 = new Phaser.Math.Vector2(patrolTargetPositionX, patrolTargetPositionY).negate().normalize();
         this.direction = patrolForward;
-        this.setVelocity(patrolForward.x * this.movementSpeed, patrolForward.y * this.movementSpeed);
+        this.velocity.x = patrolForward.x * this.movementSpeed;
+        this.velocity.y = patrolForward.y * this.movementSpeed;
+        this.setVelocity(this.velocity.x, this.velocity.y);
     }
 
     chase(target: Phaser.Math.Vector2): void
@@ -112,9 +118,17 @@ class EnemyNPC extends Phaser.Physics.Arcade.Sprite
         this.targetPosition = target;
         this.chasing = true;
 
-        this.setVelocity(forward.x * this.movementSpeed, forward.y * this.movementSpeed);
+        this.velocity.x = forward.x * this.movementSpeed;
+        this.velocity.y = forward.y * this.movementSpeed;
+        this.setVelocity(this.velocity.x, this.velocity.y);
     }
 
+    pause(): void
+    {
+        this.setVelocity(0.0, 0.0);
+    }
+
+    velocity: Phaser.Math.Vector2;
     targetPosition: Phaser.Math.Vector2;
     direction: Phaser.Math.Vector2;
     movementSpeed: number;

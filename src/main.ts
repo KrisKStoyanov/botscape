@@ -19,8 +19,6 @@ class PlayGame extends Phaser.Scene
     digSpots: Phaser.Physics.Arcade.StaticGroup;
     enemyNPCs: Phaser.Physics.Arcade.Group;
 
-    testNPC: EnemyNPC;
-
     power: number;
     maxPower: number;
     powerDrainPerTick: number;
@@ -107,9 +105,6 @@ class PlayGame extends Phaser.Scene
         this.player.setVisible(true);
         this.player.setActive(true);
 
-        this.testNPC.setPosition(screenCenterX, screenCenterY);
-        this.testNPC.setVelocity(0.0, 0.0);
-
         this.escapeHatch.setRandomPosition(
             screenCenterX - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height), 
             screenCenterY - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height),
@@ -133,100 +128,100 @@ class PlayGame extends Phaser.Scene
         this.cliffs.clear(true, true);
         this.enemyNPCs.clear(true, true);
         
-        // this.cliffCount = Phaser.Math.Between(10, 30);
-        // let invalidCliffCount = 0;
-        // for(let i = 0; i < this.cliffCount; ++i)
-        //     {
-        //         let randomX = Phaser.Math.Between(
-        //             screenCenterX - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height),
-        //             screenCenterX + 2560 / 2 - (this.verticalWall.width + this.horizontalWall.height)
-        //         );
-        //         let randomY = Phaser.Math.Between(
-        //             screenCenterY - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height),  
-        //             screenCenterY + 2560 / 2 - (this.verticalWall.width + this.horizontalWall.height)
-        //         );
+        this.cliffCount = Phaser.Math.Between(10, 30);
+        let invalidCliffCount = 0;
+        for(let i = 0; i < this.cliffCount; ++i)
+            {
+                let randomX = Phaser.Math.Between(
+                    screenCenterX - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height),
+                    screenCenterX + 2560 / 2 - (this.verticalWall.width + this.horizontalWall.height)
+                );
+                let randomY = Phaser.Math.Between(
+                    screenCenterY - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height),  
+                    screenCenterY + 2560 / 2 - (this.verticalWall.width + this.horizontalWall.height)
+                );
 
-        //         let cliff = new Phaser.Physics.Arcade.Sprite(this, randomX, randomY, 'tile-1');
-        //         const invalid = this.physics.overlap(cliff, this.player) 
-        //         || this.physics.overlap(cliff, this.escapeHatch)
-        //         || this.physics.overlap(cliff, this.batteries)
-        //         || this.physics.overlap(cliff, this.cliffs);
-        //         if(invalid)
-        //         {
-        //             invalidCliffCount++;
-        //             cliff.destroy(true);
-        //             console.log("DISABLE! CLIFF:" + i);
-        //         }
-        //         else
-        //         {
-        //             this.cliffs.add(cliff, true);
-        //         }
-        //         this.cliffCount -= invalidCliffCount;
-        //     }
+                let cliff = new Phaser.Physics.Arcade.Sprite(this, randomX, randomY, 'tile-1');
+                const invalid = this.physics.overlap(cliff, this.player) 
+                || this.physics.overlap(cliff, this.escapeHatch)
+                || this.physics.overlap(cliff, this.batteries)
+                || this.physics.overlap(cliff, this.cliffs);
+                if(invalid)
+                {
+                    invalidCliffCount++;
+                    cliff.destroy(true);
+                    console.log("DISABLE! CLIFF:" + i);
+                }
+                else
+                {
+                    this.cliffs.add(cliff, true);
+                }
+                this.cliffCount -= invalidCliffCount;
+            }
 
 
-        // this.availableBatteryCount = Phaser.Math.Between(2, 6);
-        // let invalidAvailableBatteryCount = 0;
-        // for(let i = 0; i < this.availableBatteryCount; ++i)
-        //     {
-        //         let randomX = Phaser.Math.Between(
-        //             screenCenterX - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height),
-        //             screenCenterX + 2560 / 2 - (this.verticalWall.width + this.horizontalWall.height)
-        //         );
-        //         let randomY = Phaser.Math.Between(
-        //             screenCenterY - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height), 
-        //             screenCenterY + 2560 / 2 - (this.verticalWall.width + this.horizontalWall.height)
-        //         );
+        this.availableBatteryCount = Phaser.Math.Between(2, 6);
+        let invalidAvailableBatteryCount = 0;
+        for(let i = 0; i < this.availableBatteryCount; ++i)
+            {
+                let randomX = Phaser.Math.Between(
+                    screenCenterX - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height),
+                    screenCenterX + 2560 / 2 - (this.verticalWall.width + this.horizontalWall.height)
+                );
+                let randomY = Phaser.Math.Between(
+                    screenCenterY - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height), 
+                    screenCenterY + 2560 / 2 - (this.verticalWall.width + this.horizontalWall.height)
+                );
 
-        //         let battery = new Phaser.Physics.Arcade.Sprite(this, randomX, randomY, 'battery');
-        //         const invalid = this.physics.overlap(battery, this.player) 
-        //         || this.physics.overlap(battery, this.escapeHatch)
-        //         || this.physics.overlap(battery, this.batteries)
-        //         || this.physics.overlap(battery, this.cliffs); 
-        //         if(invalid)
-        //         {
-        //             invalidAvailableBatteryCount++;
-        //             battery.destroy(true);
-        //             console.log("DISABLE! BATTERY:" + i);
-        //         }
-        //         else
-        //         {
-        //             this.batteries.add(battery, true);
-        //         }
-        //         this.availableBatteryCount -= invalidAvailableBatteryCount;
-        //     }
+                let battery = new Phaser.Physics.Arcade.Sprite(this, randomX, randomY, 'battery');
+                const invalid = this.physics.overlap(battery, this.player) 
+                || this.physics.overlap(battery, this.escapeHatch)
+                || this.physics.overlap(battery, this.batteries)
+                || this.physics.overlap(battery, this.cliffs); 
+                if(invalid)
+                {
+                    invalidAvailableBatteryCount++;
+                    battery.destroy(true);
+                    console.log("DISABLE! BATTERY:" + i);
+                }
+                else
+                {
+                    this.batteries.add(battery, true);
+                }
+                this.availableBatteryCount -= invalidAvailableBatteryCount;
+            }
 
-        // this.buriedBatteryCount = Phaser.Math.Between(10, 20);
-        // let invalidBuriedBatteryCount = 0;
-        // for(let i = 0; i < this.buriedBatteryCount; ++i)
-        //     {
-        //         let randomX = Phaser.Math.Between(
-        //             screenCenterX - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height),
-        //             screenCenterX + 2560 / 2 - (this.verticalWall.width + this.horizontalWall.height)
-        //         );
-        //         let randomY = Phaser.Math.Between(
-        //             screenCenterY - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height), 
-        //             screenCenterY + 2560 / 2 - (this.verticalWall.width + this.horizontalWall.height)
-        //         );
+        this.buriedBatteryCount = Phaser.Math.Between(10, 20);
+        let invalidBuriedBatteryCount = 0;
+        for(let i = 0; i < this.buriedBatteryCount; ++i)
+            {
+                let randomX = Phaser.Math.Between(
+                    screenCenterX - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height),
+                    screenCenterX + 2560 / 2 - (this.verticalWall.width + this.horizontalWall.height)
+                );
+                let randomY = Phaser.Math.Between(
+                    screenCenterY - 2560 / 2 + (this.verticalWall.width + this.horizontalWall.height), 
+                    screenCenterY + 2560 / 2 - (this.verticalWall.width + this.horizontalWall.height)
+                );
 
-        //             let battery = new Phaser.Physics.Arcade.Sprite(this, randomX, randomY, 'battery');
-        //             const invalid = this.physics.overlap(battery, this.player) 
-        //             || this.physics.overlap(battery, this.escapeHatch)
-        //             || this.physics.overlap(battery, this.batteries)
-        //             || this.physics.overlap(battery, this.cliffs);
-        //             if(invalid)
-        //             {
-        //                 invalidBuriedBatteryCount++;
-        //                 battery.destroy(true);
-        //                 console.log("DISABLE! BATTERY:" + i);
-        //             }
-        //             else
-        //             {
-        //                 battery.setVisible(false);
-        //                 this.batteries.add(battery, true);
-        //             }
-        //             this.buriedBatteryCount -= invalidBuriedBatteryCount;
-        //     }
+                    let battery = new Phaser.Physics.Arcade.Sprite(this, randomX, randomY, 'battery');
+                    const invalid = this.physics.overlap(battery, this.player) 
+                    || this.physics.overlap(battery, this.escapeHatch)
+                    || this.physics.overlap(battery, this.batteries)
+                    || this.physics.overlap(battery, this.cliffs);
+                    if(invalid)
+                    {
+                        invalidBuriedBatteryCount++;
+                        battery.destroy(true);
+                        console.log("DISABLE! BATTERY:" + i);
+                    }
+                    else
+                    {
+                        battery.setVisible(false);
+                        this.batteries.add(battery, true);
+                    }
+                    this.buriedBatteryCount -= invalidBuriedBatteryCount;
+            }
 
         this.startedGame = true;
         this.endedGame = false;
@@ -532,15 +527,7 @@ class PlayGame extends Phaser.Scene
         this.batteries = this.physics.add.staticGroup();
         
         this.enemyNPCs = this.physics.add.group();
-
-        this.testNPC = new EnemyNPC(this, screenCenterX, screenCenterY, 'enemy');
-        this.physics.add.collider(this.testNPC, this.levelBounds);
-        this.physics.add.collider(this.testNPC, this.player);
-        this.physics.add.collider(this.testNPC, this.cliffs);
-        this.physics.add.collider(this.testNPC, this.batteries);
-
-        //this.enemyNPCs.create(1024, 1024, 'enemy');
-        //this.enemyNPCs.setVisible(false);
+        this.enemyNPCs.classType = EnemyNPC;
 
         this.powerBar = this.add.image(0, 0, 'power-bar');
         this.powerBar.setOrigin(0.5, this.powerBar.originY);
@@ -554,6 +541,7 @@ class PlayGame extends Phaser.Scene
         this.physics.add.overlap(this.player, this.batteries, this.playerCollectBattery, undefined, this);
         this.physics.add.collider(this.player, this.enemyNPCs, this.playerDischargePower, undefined, this);
         this.physics.add.overlap(this.enemyNPCs, this.batteries, this.enemyCollectBattery, undefined, this);
+        this.physics.add.collider(this.enemyNPCs, this.cliffs);
         
         this.physics.add.overlap(this.player, this.escapeHatch, this.playerEscape, undefined, this);
 
@@ -739,15 +727,19 @@ class PlayGame extends Phaser.Scene
                     }
                 this.drainPower(this.powerDrainPerTick + (this.powerDrainPerTick * (this.speed / this.maxSpeed) * 0.01) * (Math.abs(this.player.body.velocity.x) + Math.abs(this.player.body.velocity.y)) );
                 
-                this.testNPC.update(this.time.timeScale, this.player.body.position);
-                // if(this.testNPC.search(this.player.body.position))
-                //     {
-                //         this.testNPC.chase(this.player.body.position);
-                //     }
-                // else
-                // {
-                //     this.testNPC.idle();
-                // }
+                for(let i = 0; i < this.enemyNPCs.children.entries.length; ++i)
+                    {
+                        let npc = this.enemyNPCs.getChildren()[i] as EnemyNPC;
+                        npc.update(this.time.timeScale, this.player.body.position);
+                    }
+            }
+            else if(this.pausedGame === true || this.endedGame === true)
+            {
+                for(let i = 0; i < this.enemyNPCs.children.entries.length; ++i)
+                    {
+                        let npc = this.enemyNPCs.getChildren()[i] as EnemyNPC;
+                        npc.pause();
+                    }
             }
         
 
