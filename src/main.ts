@@ -320,7 +320,7 @@ class PlayGame extends Phaser.Scene
             }
             else
             {
-                this.titleText.setText("Dayglow");
+                this.titleText.setText("Botscape");
             }
     }
     toggleStartMenu(activate: boolean): void
@@ -498,7 +498,7 @@ class PlayGame extends Phaser.Scene
 
         this.digSpots = this.physics.add.staticGroup();
 
-        this.titleText = this.add.text(screenCenterX, screenCenterY, 'Dayglow', { fontSize: '64px', color: '#000'});
+        this.titleText = this.add.text(screenCenterX, screenCenterY, 'Botscape', { fontSize: '64px', color: '#000'});
         this.titleText.setOrigin(0.5, 0.5);
 
         this.helpText = this.add.text(screenCenterX, screenCenterY + this.titleText.height, 
@@ -607,11 +607,29 @@ class PlayGame extends Phaser.Scene
         //     repeat: -1
         // });
         this.anims.create({
-            key: 'idle',
-            frames: this.anims.generateFrameNumbers('player', {start: 0, end: 1}), //[{key: 'player', frame: 1}],
+            key: 'run-left',
+            frames: this.anims.generateFrameNumbers('player', {start: 0, end: 7}), //[{key: 'player', frame: 1}],
             frameRate: 12,
             repeat: -1
-        })
+        });
+        this.anims.create({
+            key: 'run-right',
+            frames: this.anims.generateFrameNumbers('player', {start: 8, end: 15}),
+            frameRate: 12,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'run-up',
+            frames: this.anims.generateFrameNumbers('player', {start: 16, end: 23}),
+            frameRate: 12,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'run-down',
+            frames: this.anims.generateFrameNumbers('player', {start: 24, end: 31}),
+            frameRate: 12,
+            repeat: -1
+        });
 
         this.escapeHatch.setDepth(1);
         this.player.setDepth(2);
@@ -723,10 +741,26 @@ class PlayGame extends Phaser.Scene
                 velocityY = (posScaleY * this.speed + negScaleY * -this.speed);
                 this.player.setVelocity(velocityX, velocityY);
                 
-                if(this.player.body.velocity.x === 0 && this.player.body.velocity.y === 0)
+                if(this.player.body.velocity.x < 0 && this.player.body.velocity.y === 0)
                     {
-                        this.player.anims.play('idle', true);
+                        this.player.anims.play('run-left', true);
                     }
+                else if(this.player.body.velocity.x > 0 && this.player.body.velocity.y === 0)
+                    {
+                        this.player.anims.play('run-right', true);
+                    }
+                else if(this.player.body.velocity.x === 0 && this.player.body.velocity.y < 0)
+                    {
+                        this.player.anims.play('run-up', true);
+                    }
+                else if(this.player.body.velocity.x === 0 && this.player.body.velocity.y > 0)
+                    {
+                        this.player.anims.play('run-down', true);
+                    }
+                else
+                {
+                    this.player.anims.stop();
+                }
 
                 if(this.digKey?.isDown)
                     {
