@@ -582,30 +582,6 @@ class PlayGame extends Phaser.Scene
 
         this.physics.add.collider(this.player, this.levelBounds);
         this.physics.add.collider(this.enemyNPCs, this.levelBounds);
-        // this.anims.create({
-        //     key: 'left',
-        //     frames: this.anims.generateFrameNumbers('player', {start: 0, end: 3}),
-        //     frameRate: 10,
-        //     repeat: -1
-        // });
-        // this.anims.create({
-        //     key: 'right',
-        //     frames: this.anims.generateFrameNumbers('player', {start: 0, end: 3}),
-        //     frameRate: 10,
-        //     repeat: -1
-        // });
-        // this.anims.create({
-        //     key: 'up',
-        //     frames: this.anims.generateFrameNumbers('player', {start: 0, end: 3}),
-        //     frameRate: 10,
-        //     repeat: -1
-        // });
-        // this.anims.create({
-        //     key: 'down',
-        //     frames: this.anims.generateFrameNumbers('player', {start: 0, end: 3}),
-        //     frameRate: 10,
-        //     repeat: -1
-        // });
         this.anims.create({
             key: 'run-left',
             frames: this.anims.generateFrameNumbers('player', {start: 0, end: 7}), //[{key: 'player', frame: 1}],
@@ -627,6 +603,30 @@ class PlayGame extends Phaser.Scene
         this.anims.create({
             key: 'run-down',
             frames: this.anims.generateFrameNumbers('player', {start: 24, end: 31}),
+            frameRate: 12,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'run-up-left',
+            frames: this.anims.generateFrameNumbers('player', {start: 32, end: 39}),
+            frameRate: 12,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'run-up-right',
+            frames: this.anims.generateFrameNumbers('player', {start: 40, end: 47}),
+            frameRate: 12,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'run-down-right',
+            frames: this.anims.generateFrameNumbers('player', {start: 48, end: 55}),
+            frameRate: 12,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'run-down-left',
+            frames: this.anims.generateFrameNumbers('player', {start: 56, end: 63}),
             frameRate: 12,
             repeat: -1
         });
@@ -756,6 +756,22 @@ class PlayGame extends Phaser.Scene
                 else if(this.player.body.velocity.x === 0 && this.player.body.velocity.y > 0)
                     {
                         this.player.anims.play('run-down', true);
+                    }
+                else if(this.player.body.velocity.x < 0 && this.player.body.velocity.y < 0)
+                    {
+                        this.player.anims.play('run-up-left', true);
+                    }
+                else if(this.player.body.velocity.x > 0 && this.player.body.velocity.y < 0)
+                    {
+                        this.player.anims.play('run-up-right', true);
+                    }
+                else if(this.player.body.velocity.x < 0 && this.player.body.velocity.y > 0)
+                    {
+                        this.player.anims.play('run-down-left', true);
+                    }
+                else if(this.player.body.velocity.x > 0 && this.player.body.velocity.y > 0)
+                    {
+                        this.player.anims.play('run-down-right', true);
                     }
                 else
                 {
