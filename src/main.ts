@@ -64,6 +64,15 @@ class PlayGame extends Phaser.Scene
     digKey: Phaser.Input.Keyboard.Key | undefined;
     pauseKey: Phaser.Input.Keyboard.Key | undefined;
     
+    alertLowBatterSound: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
+    ambienceSound: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
+    enemyAttackSound: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
+    batteryCollectSound: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
+    playerDiggingSound: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
+    escapeHatchFoundSound: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
+    playerWalkingSound: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
+    bgmSound: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
+
     constructor() 
     {
         super("PlayGame");
@@ -78,7 +87,7 @@ class PlayGame extends Phaser.Scene
         this.powerBar.setVisible(true);
         this.powerBarOutline.setVisible(true);
 
-        this.powerDrainPerTick = 0.001;
+        this.powerDrainPerTick = 0.01;
 
         this.power = 50;
         this.maxPower = 100;
@@ -249,6 +258,9 @@ class PlayGame extends Phaser.Scene
                     this.buriedBatteryCount -= invalidBuriedBatteryCount;
             }
 
+        this.ambienceSound.stop();
+        this.bgmSound.play();
+
         this.startedGame = true;
         this.endedGame = false;
         this.pausedGame = false;
@@ -269,6 +281,10 @@ class PlayGame extends Phaser.Scene
         this.player.setActive(false);
 
         this.toggleEndMenu(true);
+
+        this.alertLowBatterSound.stop();
+        this.bgmSound.stop();
+        this.ambienceSound.play();
 
         this.startedGame = false;
         this.endedGame = true;
@@ -360,6 +376,7 @@ class PlayGame extends Phaser.Scene
             {
                 battery.destroy();
                 this.power = Math.min(this.power + this.batteryPower, this.maxPower);        
+                this.batteryCollectSound.play();
             }
         //this.powerText.setText('Power: ' + this.power);
     }
@@ -369,10 +386,12 @@ class PlayGame extends Phaser.Scene
         let playerPositionY: number = this.player.getCenter().y;
         let escapeHatchPositionX: number = this.escapeHatch.getCenter().x;
         let escapeHatchPositionY: number = this.escapeHatch.getCenter().y;
+        this.playerDiggingSound.play();
         if(Math.abs(playerPositionX - escapeHatchPositionX) < this.digRevealRadius
         && Math.abs(playerPositionY - escapeHatchPositionY) < this.digRevealRadius)
         {
             this.escapeHatch.setVisible(true);
+            this.escapeHatchFoundSound.play();
         }
         else
         {
@@ -388,21 +407,24 @@ class PlayGame extends Phaser.Scene
                 this.endGame(true);
             }
     }
-    enemyCollectBattery(player: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody, 
+    enemyCollectBattery(enemy: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody, 
         battery: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody): void
     {
+        
+        let npc = enemy as EnemyNPC;
+        npc.collectBattery(this.batteryPower);
         battery.destroy();
     }
 
     playerDischargePower(player: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody, 
         enemy: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody): void
     {
+        this.enemyAttackSound.play();
         this.power -= 1;
-        //this.powerText.setText('Power: ' + this.power);
     }
     drainPower(amount: number): void
     {
-        this.power -= this.time.timeScale * amount;
+        this.power -= amount;
     }
     randomSpawnAtDigSpot(): void
     {
@@ -411,7 +433,7 @@ class PlayGame extends Phaser.Scene
                 return;
             }
         let randomValue: number = Phaser.Math.Between(0, 100);
-        if(randomValue < 25)
+        if(randomValue < 50)
             {
                 return;
             }
@@ -425,7 +447,7 @@ class PlayGame extends Phaser.Scene
                 digSpotSpawnPositionX += this.digSpot.width / 2;
                 digSpotSpawnPositionY += this.digSpot.height / 2;
 
-                if(randomValue < 90)
+                if(randomValue < 80)
                     {
                         let battery = new Phaser.Physics.Arcade.Sprite(this, digSpotSpawnPositionX, digSpotSpawnPositionY, 'battery');
                         const invalid = this.physics.overlap(battery, this.batteries);
@@ -447,6 +469,72 @@ class PlayGame extends Phaser.Scene
     }
     preload(): void 
     {
+        this.load.audio('alert-low-battery', 'assets/audio/Alert-01.ogg');
+
+        this.load.audio('ambience', 'assets/audio/Ambience-01.ogg');
+
+        this.load.audio('enemy-attack', [
+            'assets/audio/Attack-01.ogg',
+            'assets/audio/Attack-02.ogg',
+            'assets/audio/Attack-03.ogg',
+            'assets/audio/Attack-04.ogg',
+            'assets/audio/Attack-05.ogg'] );
+
+        this.load.audio('battery-collect', 'assets/audio/Battery_Collect-01.ogg');
+
+        this.load.audio('player-digging', [
+            'assets/audio/Digging-01.ogg',
+            'assets/audio/Digging-02.ogg',
+            'assets/audio/Digging-03.ogg'
+        ]);
+
+        this.load.audio('escape-hatch-found', 'assets/audio/Door-01.ogg');
+
+        this.load.audio('enemy-player-found', [
+            'assets/audio/Enemy_Bot_Battery_Cry-01.ogg',
+            'assets/audio/Enemy_Bot_Battery_Cry-02.ogg',
+            'assets/audio/Enemy_Bot_Battery_Cry-03.ogg',
+            'assets/audio/Enemy_Bot_Battery_Cry-04.ogg',
+            'assets/audio/Enemy_Bot_Battery_Cry-05.ogg',
+            'assets/audio/Enemy_Bot_Battery_Cry-06.ogg',
+            'assets/audio/Enemy_Bot_Battery_Cry-07.ogg',
+            'assets/audio/Enemy_Bot_Battery_Cry-08.ogg',
+            'assets/audio/Enemy_Bot_Battery_Cry-09.ogg',
+            'assets/audio/Enemy_Bot_Battery_Cry-10.ogg',
+            'assets/audio/Enemy_Bot_Battery_Cry-11.ogg',
+            'assets/audio/Enemy_Bot_Battery_Cry-12.ogg',
+            'assets/audio/Enemy_Bot_Battery_Cry-13.ogg',
+            'assets/audio/Enemy_Bot_Battery_Cry-14.ogg',
+            'assets/audio/Enemy_Bot_Battery_Cry-15.ogg',
+            'assets/audio/Enemy_Bot_Battery_Cry-16.ogg',
+            'assets/audio/Enemy_Bot_Battery_Cry-17.ogg',
+            'assets/audio/Enemy_Bot_Battery_Cry-18.ogg',
+            'assets/audio/Enemy_Bot_Battery_Cry-19.ogg',
+            'assets/audio/Enemy_Bot_Battery_Cry-20.ogg',
+            'assets/audio/Enemy_Bot_Battery_Cry-21.ogg'
+        ]);
+
+        this.load.audio('enemy-bot-death', [            
+            'assets/audio/Enemy_Bot_Death-01.ogg',
+            'assets/audio/Enemy_Bot_Death-02.ogg',
+            'assets/audio/Enemy_Bot_Death-03.ogg',
+            'assets/audio/Enemy_Bot_Death-04.ogg',
+            'assets/audio/Enemy_Bot_Death-05.ogg',
+            'assets/audio/Enemy_Bot_Death-06.ogg',
+            'assets/audio/Enemy_Bot_Death-07.ogg',
+            'assets/audio/Enemy_Bot_Death-08.ogg',
+            'assets/audio/Enemy_Bot_Death-09.ogg',
+            'assets/audio/Enemy_Bot_Death-10.ogg',
+            'assets/audio/Enemy_Bot_Death-11.ogg',
+            'assets/audio/Enemy_Bot_Death-12.ogg',
+            'assets/audio/Enemy_Bot_Death-13.ogg']),
+        
+        this.load.audio('player-walking', [
+            'assets/audio/Footstep-01.ogg',
+            'assets/audio/Footstep-02.ogg']);
+
+        this.load.audio('bgm', 'assets/audio/Music-01.ogg');
+
         this.load.image('logo', 'assets/woodpecker.png'); 
         this.load.image('background', 'assets/background.png');
         this.load.spritesheet('player', 'assets/player.png', {frameWidth: 128, frameHeight: 128});
@@ -631,6 +719,19 @@ class PlayGame extends Phaser.Scene
             repeat: -1
         });
 
+        this.alertLowBatterSound = this.sound.add('alert-low-battery');
+        this.ambienceSound = this.sound.add('ambience');
+        this.ambienceSound.setLoop(true);
+        this.enemyAttackSound = this.sound.add('enemy-attack');
+        this.batteryCollectSound = this.sound.add('battery-collect');
+        this.playerDiggingSound = this.sound.add('player-digging');
+        this.escapeHatchFoundSound = this.sound.add('escape-hatch-found');
+        this.playerWalkingSound = this.sound.add('player-walking');
+        this.bgmSound = this.sound.add('bgm');
+        this.bgmSound.setLoop(true);
+
+        this.ambienceSound.play();
+        
         this.escapeHatch.setDepth(1);
         this.player.setDepth(2);
         this.enemyNPCs.setDepth(2);
@@ -740,6 +841,18 @@ class PlayGame extends Phaser.Scene
                 velocityX = (posScaleX * this.speed + negScaleX * -this.speed);
                 velocityY = (posScaleY * this.speed + negScaleY * -this.speed);
                 this.player.setVelocity(velocityX, velocityY);
+
+                if(this.player.body.velocity.x !== 0 || this.player.body.velocity.y !== 0)
+                    {
+                        if(!this.playerWalkingSound.isPlaying)
+                            {
+                                this.playerWalkingSound.play();
+                            }
+                    }
+                else
+                {
+                    this.playerWalkingSound.stop();
+                }
                 
                 if(this.player.body.velocity.x < 0 && this.player.body.velocity.y === 0)
                     {
@@ -812,7 +925,7 @@ class PlayGame extends Phaser.Scene
                         this.randomSpawnAtDigSpot();
                         this.randomSpawnTimer = this.randomSpawnCooldown;
                     }
-                this.drainPower(this.powerDrainPerTick + (this.powerDrainPerTick * (this.speed / this.maxSpeed) * 0.01) * (Math.abs(this.player.body.velocity.x) + Math.abs(this.player.body.velocity.y)) );
+                this.drainPower((this.powerDrainPerTick + (this.powerDrainPerTick * (this.speed / this.maxSpeed) * 0.01) * (Math.abs(this.player.body.velocity.x) + Math.abs(this.player.body.velocity.y))) * this.time.timeScale );
                 
                 for(let i = 0; i < this.enemyNPCs.children.entries.length; ++i)
                     {
@@ -836,6 +949,17 @@ class PlayGame extends Phaser.Scene
                 {
                     this.endGame();
                 }
+        }
+        else if(this.power < this.maxPower / 4)
+            {
+                if(!this.alertLowBatterSound.isPlaying)
+                    {
+                        this.alertLowBatterSound.play();
+                    }
+            }
+        else
+        {
+            this.alertLowBatterSound.stop();
         }
     }
 }

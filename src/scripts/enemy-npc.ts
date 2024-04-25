@@ -4,14 +4,19 @@ class EnemyNPC extends Phaser.Physics.Arcade.Sprite
     {
         super(scene, x, y, texture)
 
-        this.movementSpeed = 35;
-        this.powerDrainPerHit = 0.1;
+        this.power = 100.0;
+        this.powerDrainPerTick = 0.1;
+        this.movementSpeed = 55;
         this.refocusTimer = 60;
         this.refocusCooldown = 60;
         this.direction = new Phaser.Math.Vector2(-1.0, 0.0);
         this.velocity = new Phaser.Math.Vector2(0.0, 0.0);
         this.targetPosition = new Phaser.Math.Vector2(this.body?.position.x || 0, this.body?.position.y || 0);
         this.visibilityDistance = 512;
+        
+        this.playerFoundSound = scene.sound.add('enemy-player-found');
+        this.deathSound = scene.sound.add('enemy-bot-death');
+
         this.chasing = false;
         scene.add.existing(this);
         scene.physics.add.existing(this, false);
@@ -19,6 +24,8 @@ class EnemyNPC extends Phaser.Physics.Arcade.Sprite
 
     update(deltaTime: number, target: Phaser.Math.Vector2): void
     {
+        this.power -= (this.powerDrainPerTick * deltaTime);
+
         this.setVelocity(this.velocity.x, this.velocity.y);
         this.refocusTimer -= deltaTime;
         if(this.refocusTimer < 0)
@@ -45,6 +52,7 @@ class EnemyNPC extends Phaser.Physics.Arcade.Sprite
                 {   
                     if(this.search(target))
                         {
+                            this.playerFoundSound.play();
                             return this.chase(target);
                         }
                     targetPositionX = this.body?.position.x || 0;
@@ -68,6 +76,12 @@ class EnemyNPC extends Phaser.Physics.Arcade.Sprite
                     return this.idle();
                 }
             }
+
+            if(this.power < 0)
+                {
+                    this.deathSound.play();
+                    this.destroy();
+                }
     }
 
     idle(): void
@@ -128,16 +142,24 @@ class EnemyNPC extends Phaser.Physics.Arcade.Sprite
         this.setVelocity(0.0, 0.0);
     }
 
+    collectBattery(amount: number): void
+    {
+        this.power += amount;
+    }
+
     velocity: Phaser.Math.Vector2;
     targetPosition: Phaser.Math.Vector2;
     direction: Phaser.Math.Vector2;
     movementSpeed: number;
     powerDrainPerTick: number;
-    powerDrainPerHit: number;
+    power: number;
     refocusTimer: number;
     refocusCooldown: number;
     visibilityDistance: number;
     chasing: boolean;
+
+    playerFoundSound: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
+    deathSound: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
 }
 
 export default EnemyNPC;
