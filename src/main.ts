@@ -87,7 +87,7 @@ class PlayGame extends Phaser.Scene
         this.powerBar.setVisible(true);
         this.powerBarOutline.setVisible(true);
 
-        this.powerDrainPerTick = 0.01;
+        this.powerDrainPerTick = 0.005;
 
         this.power = 50;
         this.maxPower = 100;
@@ -367,8 +367,6 @@ class PlayGame extends Phaser.Scene
         this.toggleStartMenu(activate);
     }
 
-    // playerCollectBattery(player: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody, 
-    //     battery: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody): void
     playerCollectBattery(player: any,
         battery: any)
     {
@@ -378,7 +376,6 @@ class PlayGame extends Phaser.Scene
                 this.power = Math.min(this.power + this.batteryPower, this.maxPower);        
                 this.batteryCollectSound.play();
             }
-        //this.powerText.setText('Power: ' + this.power);
     }
     playerDig(): void
     {
@@ -543,7 +540,7 @@ class PlayGame extends Phaser.Scene
         this.load.image('tile-3', 'assets/tile-3.png');
         this.load.image('tile-4', 'assets/tile-4.png');
         this.load.image('battery', 'assets/battery.png');
-        this.load.image('enemy', 'assets/enemy.png');
+        this.load.spritesheet('enemy', 'assets/enemy.png', {frameWidth: 128, frameHeight: 128});
         this.load.image('power-bar', 'assets/power-bar.png');
         this.load.image('power-bar-outline', 'assets/power-bar-outline.png');
         this.load.image('start-button', 'assets/start-button.png');
@@ -672,7 +669,7 @@ class PlayGame extends Phaser.Scene
         this.physics.add.collider(this.enemyNPCs, this.levelBounds);
         this.anims.create({
             key: 'run-left',
-            frames: this.anims.generateFrameNumbers('player', {start: 0, end: 7}), //[{key: 'player', frame: 1}],
+            frames: this.anims.generateFrameNumbers('player', {start: 0, end: 7}), 
             frameRate: 12,
             repeat: -1
         });
@@ -716,6 +713,55 @@ class PlayGame extends Phaser.Scene
             key: 'run-down-left',
             frames: this.anims.generateFrameNumbers('player', {start: 56, end: 63}),
             frameRate: 12,
+            repeat: -1
+        });
+
+        this.anims.create({
+            key: 'enemy-run-left',
+            frames: this.anims.generateFrameNumbers('enemy', {start: 0, end: 7}),
+            frameRate: 9,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'enemy-run-right',
+            frames: this.anims.generateFrameNumbers('enemy', {start: 8, end: 15}),
+            frameRate: 9,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'enemy-run-up',
+            frames: this.anims.generateFrameNumbers('enemy', {start: 16, end: 23}),
+            frameRate: 9,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'enemy-run-down',
+            frames: this.anims.generateFrameNumbers('enemy', {start: 24, end: 31}),
+            frameRate: 9,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'enemy-run-up-left',
+            frames: this.anims.generateFrameNumbers('enemy', {start: 32, end: 39}),
+            frameRate: 9,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'enemy-run-up-right',
+            frames: this.anims.generateFrameNumbers('enemy', {start: 40, end: 47}),
+            frameRate: 9,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'enemy-run-down-right',
+            frames: this.anims.generateFrameNumbers('enemy', {start: 48, end: 55}),
+            frameRate: 9,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'enemy-run-down-left',
+            frames: this.anims.generateFrameNumbers('enemy', {start: 56, end: 63}),
+            frameRate: 9,
             repeat: -1
         });
 

@@ -5,7 +5,7 @@ class EnemyNPC extends Phaser.Physics.Arcade.Sprite
         super(scene, x, y, texture)
 
         this.power = 100.0;
-        this.powerDrainPerTick = 0.1;
+        this.powerDrainPerTick = 0.05;
         this.movementSpeed = 55;
         this.refocusTimer = 60;
         this.refocusCooldown = 60;
@@ -75,6 +75,45 @@ class EnemyNPC extends Phaser.Physics.Arcade.Sprite
                 {
                     return this.idle();
                 }
+            }
+
+            let velocityX = this.body?.velocity.x || 0;
+            let velocityY = this.body?.velocity.y || 0;
+            if(velocityX < 0 && velocityY === 0)
+                {
+                    this.anims.play('enemy-run-left', true);
+                }
+            else if(velocityX > 0 && velocityY === 0)
+                {
+                    this.anims.play('enemy-run-right', true);
+                }
+            else if(velocityX === 0 && velocityY < 0)
+                {
+                    this.anims.play('enemy-run-up', true);
+                }
+            else if(velocityX === 0 && velocityY > 0)
+                {
+                    this.anims.play('enemy-run-down', true);
+                }
+            else if(velocityX < 0 && velocityY < 0)
+                {
+                    this.anims.play('enemy-run-up-left', true);
+                }
+            else if(velocityX> 0 && velocityY < 0)
+                {
+                    this.anims.play('enemy-run-up-right', true);
+                }
+            else if(velocityX < 0 && velocityY > 0)
+                {
+                    this.anims.play('enemy-run-down-left', true);
+                }
+            else if(velocityX > 0 && velocityY > 0)
+                {
+                    this.anims.play('enemy-run-down-right', true);
+                }
+            else
+            {
+                this.anims.stop();
             }
 
             if(this.power < 0)
