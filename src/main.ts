@@ -383,7 +383,6 @@ class PlayGame extends Phaser.Scene
         let playerPositionY: number = this.player.getCenter().y;
         let escapeHatchPositionX: number = this.escapeHatch.getCenter().x;
         let escapeHatchPositionY: number = this.escapeHatch.getCenter().y;
-        this.playerDiggingSound.play();
         if(Math.abs(playerPositionX - escapeHatchPositionX) < this.digRevealRadius
         && Math.abs(playerPositionY - escapeHatchPositionY) < this.digRevealRadius)
         {
@@ -715,6 +714,12 @@ class PlayGame extends Phaser.Scene
             frameRate: 12,
             repeat: -1
         });
+        this.anims.create({
+            key: 'dig',
+            frames: this.anims.generateFrameNumbers('player', {start: 64, end: 71}),
+            frameRate: 12,
+            repeat: 0  
+        });
 
         this.anims.create({
             key: 'enemy-run-left',
@@ -884,9 +889,12 @@ class PlayGame extends Phaser.Scene
                     posScaleY = 0;
                 }
                 
-                velocityX = (posScaleX * this.speed + negScaleX * -this.speed);
-                velocityY = (posScaleY * this.speed + negScaleY * -this.speed);
-                this.player.setVelocity(velocityX, velocityY);
+                if(!this.digging)
+                    {
+                        velocityX = (posScaleX * this.speed + negScaleX * -this.speed);
+                        velocityY = (posScaleY * this.speed + negScaleY * -this.speed);
+                        this.player.setVelocity(velocityX, velocityY);
+                    }
 
                 if(this.player.body.velocity.x !== 0 || this.player.body.velocity.y !== 0)
                     {
@@ -934,35 +942,52 @@ class PlayGame extends Phaser.Scene
                     }
                 else
                 {
-                    this.player.anims.stop();
+                    if(this.digging === true)
+                        {
+                            this.player.anims.play('dig', true);
+                        }
+                        else
+                        {
+                            this.player.anims.stop();
+                        }
                 }
 
                 if(this.digKey?.isDown)
                     {
                         this.player.setVelocity(0,0);
+                        
                         if(!this.physics.overlap(this.digSpots, this.player))
+                        {   
+                            if(this.power > this.powerDrainDigPerTick)
                             {
-                                if(this.power > this.powerDrainDigPerTick)
-                                    if(this.digging === false)
+                                if(!this.playerDiggingSound.isPlaying)
                                     {
-                                        this.digging = true;
+                                        this.playerDiggingSound.play();
                                     }
-                                    else
+                                
+                                if(this.digging === false)
+                                {
+                                    this.digging = true;
+                                }
+                                else
+                                {
+                                    this.power -= this.powerDrainDigPerTick * this.time.timeScale;
+                                    this.digTimer -= this.time.timeScale;
+                                }
+                                if(this.digTimer < 0)
                                     {
-                                        this.power -= this.powerDrainDigPerTick * this.time.timeScale;
-                                        this.digTimer -= this.time.timeScale;
+                                        this.playerDig();
+                                        this.digging = false;
+                                        this.digTimer = this.digDuration;
                                     }
-                                    if(this.digTimer < 0)
-                                        {
-                                            this.playerDig();
-                                            this.digging = false;
-                                            this.digTimer = this.digDuration;
-                                        }
                             }
+                        }
                     }
                 else if(this.digKey?.isUp)
                     {
+                        this.playerDiggingSound.stop();
                         this.digTimer = this.digDuration;
+                        this.digging = false;
                     }
 
                 this.randomSpawnTimer -= this.time.timeScale * 0.5;

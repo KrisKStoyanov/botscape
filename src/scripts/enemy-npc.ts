@@ -178,6 +178,7 @@ class EnemyNPC extends Phaser.Physics.Arcade.Sprite
 
     pause(): void
     {
+        this.anims.stop();
         this.setVelocity(0.0, 0.0);
     }
 
