@@ -529,7 +529,10 @@ class PlayGame extends Phaser.Scene
             'assets/audio/Footstep-01.ogg',
             'assets/audio/Footstep-02.ogg']);
 
+
         this.load.audio('bgm', 'assets/audio/Music-01.ogg');
+
+        this.load.audio('button-press', 'assets/audio/Button_Press_01.ogg');
 
         this.load.image('logo', 'assets/woodpecker.png'); 
         this.load.image('background', 'assets/background.png');

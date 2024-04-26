@@ -13,6 +13,8 @@ class GameButton extends Phaser.GameObjects.Image
                 this.enterButtonHoverState();
                 callback();
             });
+
+        this.buttonPressSound = scene.sound.add('button-press');
     }
 
     enterButtonHoverState(): void
@@ -25,10 +27,12 @@ class GameButton extends Phaser.GameObjects.Image
     }
     enterButtonActiveState(): void
     {
+        this.buttonPressSound.play();
         this.setScale(0.8);
     }
 
     pressed: boolean;
+    buttonPressSound: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
 }
 
 export default GameButton;
