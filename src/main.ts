@@ -330,13 +330,18 @@ class PlayGame extends Phaser.Scene
         this.helpText.setVisible(activate);
         this.helpText.setActive(activate);
         
+        const screenCenterX = screenWidth / 2;
+        const screenCenterY = screenHeight / 2
+
         if(activate === true)
             {
                 this.titleText.setText("How to play:");
+                this.titleText.setPosition(this.cameras.main.scrollX + screenCenterX, this.cameras.main.scrollY + screenCenterY - this.startButton.height + this.buttonMenuPadding - (this.helpText.height / 2));
             }
             else
             {
                 this.titleText.setText("Botscape");
+                this.titleText.setPosition(this.cameras.main.scrollX + screenCenterX, this.cameras.main.scrollY + screenCenterY - this.startButton.height + this.buttonMenuPadding);
             }
     }
     toggleStartMenu(activate: boolean): void
@@ -585,21 +590,21 @@ class PlayGame extends Phaser.Scene
 
         this.digSpots = this.physics.add.staticGroup();
 
-        this.titleText = this.add.text(screenCenterX, screenCenterY, 'Botscape', { fontSize: '64px', color: '#000'});
+        this.titleText = this.add.text(screenCenterX, screenCenterY, 'Botscape', 
+        { font: 'bold 64pt Arial', color: '#000', align: 'center' });
         this.titleText.setOrigin(0.5, 0.5);
 
         this.helpText = this.add.text(screenCenterX, screenCenterY + this.titleText.height, 
-            'Find the escape hatch before your power runs out!\n' +
+            'Find the escape hatch buried somewhere before your power runs out!\n' +
             'Every action drains power!\n' +
-            'Collect batteries scattered through out the zone to replenish your power!\n' +
-            'Beware the lost survivors ' +
-            'who failed to escape and have remained buried here!\n' +
+            'Collect batteries scattered through out the zone or buried to replenish your power!\n' +
+            'Beware the buried scavengers that could not escape!\n' +
             '[W] - Move Up \n'+
             '[A] - Move Left \n' +
             '[S] - Move Down \n' +
             '[D] - Move Right \n' +
             'Hold [SPACE] - Dig \n',  
-            { fontSize: '26px', color: '#000', align: 'center'});
+            {  font: '32pt Arial', color: '#000', align: 'center' });
         this.helpText.setOrigin(0.5, 0.5);
         
         this.helpText.setVisible(false);
@@ -633,7 +638,14 @@ class PlayGame extends Phaser.Scene
 
         this.startButton.setPosition(buttonStartPositionX, this.startButton.y);
         this.helpButton.setPosition(buttonStartPositionX + this.startButton.width + this.buttonMenuPadding, this.helpButton.y);
-        this.titleText.setPosition(screenCenterX, screenCenterY - this.startButton.height + this.buttonMenuPadding);
+        if(this.helpText.active)
+            {
+                this.titleText.setPosition(screenCenterX, screenCenterY - this.startButton.height + this.buttonMenuPadding - this.helpText.height);
+            }
+        else
+        {
+            this.titleText.setPosition(screenCenterX, screenCenterY - this.startButton.height + this.buttonMenuPadding);
+        }
 
         //this.powerText = this.add.text(0, 0, 'Power: ' + this.power, { fontSize: '32px', color: '#000'});
 
