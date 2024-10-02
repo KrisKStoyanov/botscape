@@ -400,16 +400,16 @@ class PlayGame extends Phaser.Scene
         }
         // do a collision check with a circle of predefined radius around the hatch to check if it can be revealed
     }
-    playerEscape(player: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody, 
-        hatch: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody): void
+    playerEscape(player: Phaser.Physics.Arcade.Body | Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody, 
+        hatch: Phaser.Physics.Arcade.Body | Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody): void
     {
         if(this.escapeHatch.visible && this.startedGame === true)
             {
                 this.endGame(true);
             }
     }
-    enemyCollectBattery(enemy: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody, 
-        battery: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody): void
+    enemyCollectBattery(enemy: Phaser.Physics.Arcade.Body | Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody, 
+        battery: Phaser.Physics.Arcade.Body | Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody): void
     {
         
         let npc = enemy as EnemyNPC;
@@ -417,8 +417,8 @@ class PlayGame extends Phaser.Scene
         battery.destroy();
     }
 
-    playerDischargePower(player: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody, 
-        enemy: Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody): void
+    playerDischargePower(player: Phaser.Physics.Arcade.Body | Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody, 
+        enemy: Phaser.Physics.Arcade.Body | Phaser.Tilemaps.Tile | Phaser.Types.Physics.Arcade.GameObjectWithBody): void
     {
         this.enemyAttackSound.play();
         this.power -= 1;
